@@ -25,6 +25,8 @@ help:
     &7  &f/wf addspawn <arena> &8— &7Add a spawn point to your location
     &7  &f/wf info <arena> &8— &7Show arena details
     &7  &f/wf list &8— &7List all arenas
+    &7  &f/wf forcestart <arena> &8— &7Force-start a match
+    &7  &f/wf stop <arena> &8— &7Stop countdown or match
   footer: "&8Use /wf help for this list."
 
 arena:
@@ -63,6 +65,13 @@ game:
   join-denied-running: "&c%arena% is already running. You cannot join right now."
   missing-spawns: "&cCannot start &f%arena%&c: no spawn points configured."
   not-enough-players: "&cNot enough players to start on &f%arena%&c."
+  already-running: "&c%arena% is already running."
+  not-running: "&cNo active countdown or match on &f%arena%&c."
+  no-players: "&cNo players joined on &f%arena%&c."
+  force-start-success: "&aForce-started Water Fight on &f%arena%&a."
+  stopped: "&7Water Fight on &f%arena% &7was stopped."
+  usage-forcestart: "&7Usage: &f/wf forcestart <arena>"
+  usage-stop: "&7Usage: &f/wf stop <arena>"
 
 join:
   joined-arena: "&aYou joined &f%arena%&a."

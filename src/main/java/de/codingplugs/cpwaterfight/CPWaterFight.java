@@ -10,8 +10,10 @@ import de.codingplugs.cpwaterfight.command.arena.ArenaInfoSubCommand;
 import de.codingplugs.cpwaterfight.command.arena.ArenaListSubCommand;
 import de.codingplugs.cpwaterfight.command.arena.CreateArenaSubCommand;
 import de.codingplugs.cpwaterfight.command.arena.DeleteArenaSubCommand;
+import de.codingplugs.cpwaterfight.command.arena.ForceStartSubCommand;
 import de.codingplugs.cpwaterfight.command.arena.SetJoinSubCommand;
 import de.codingplugs.cpwaterfight.command.arena.SetLobbySubCommand;
+import de.codingplugs.cpwaterfight.command.arena.StopGameSubCommand;
 import de.codingplugs.cpwaterfight.command.join.JoinArenaSubCommand;
 import de.codingplugs.cpwaterfight.command.join.LeaveSubCommand;
 import de.codingplugs.cpwaterfight.config.ConfigManager;
@@ -20,6 +22,7 @@ import de.codingplugs.cpwaterfight.game.GameManager;
 import de.codingplugs.cpwaterfight.game.GameStateLabels;
 import de.codingplugs.cpwaterfight.join.JoinManager;
 import de.codingplugs.cpwaterfight.level.LevelManager;
+import de.codingplugs.cpwaterfight.listener.GameLifecycleListener;
 import de.codingplugs.cpwaterfight.listener.JoinBlockListener;
 import de.codingplugs.cpwaterfight.message.MessageManager;
 import org.bukkit.command.PluginCommand;
@@ -116,6 +119,7 @@ public final class CPWaterFight extends JavaPlugin {
 
             joinManager = new JoinManager(messageManager, arenaManager, joinDisplayManager, gameManager);
             gameManager.setPlayerCountProvider(joinManager::getPlayerCount);
+            gameManager.setJoinManager(joinManager);
             joinManager.load();
             joinDisplayManager.load();
 
@@ -143,7 +147,9 @@ public final class CPWaterFight extends JavaPlugin {
                 new SetJoinSubCommand(messageManager, arenaManager, joinManager, joinDisplayManager),
                 new AddSpawnSubCommand(messageManager, arenaManager),
                 new ArenaInfoSubCommand(messageManager, arenaManager),
-                new ArenaListSubCommand(messageManager, arenaManager)
+                new ArenaListSubCommand(messageManager, arenaManager),
+                new ForceStartSubCommand(messageManager, arenaManager, gameManager),
+                new StopGameSubCommand(messageManager, arenaManager, gameManager)
         );
 
         WaterFightCommand executor = new WaterFightCommand(messageManager, subCommands);
@@ -157,10 +163,12 @@ public final class CPWaterFight extends JavaPlugin {
     }
 
     private void registerListeners() {
-        getServer().getPluginManager().registerEvents(
+        var pluginManager = getServer().getPluginManager();
+        pluginManager.registerEvents(
                 new JoinBlockListener(arenaManager, joinManager, messageManager),
                 this
         );
+        pluginManager.registerEvents(new GameLifecycleListener(gameManager), this);
     }
 
     private void shutdownManagers() {

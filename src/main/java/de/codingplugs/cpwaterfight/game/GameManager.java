@@ -4,6 +4,7 @@ import de.codingplugs.cpwaterfight.arena.Arena;
 import de.codingplugs.cpwaterfight.config.ConfigManager;
 import de.codingplugs.cpwaterfight.display.JoinDisplayManager;
 import de.codingplugs.cpwaterfight.join.ArenaPlayerCountProvider;
+import de.codingplugs.cpwaterfight.join.JoinManager;
 import de.codingplugs.cpwaterfight.message.MessageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -26,6 +27,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class GameManager {
 
     private static final String COUNTDOWN_SECONDS_PATH = "game.countdown-seconds";
+    private static final String PREVENT_FALL_DAMAGE_PATH = "game.prevent-fall-damage-before-start";
     private static final Set<Integer> MILESTONE_SECONDS = Set.of(60, 30, 10);
 
     private final JavaPlugin plugin;
@@ -33,6 +35,7 @@ public final class GameManager {
     private final MessageManager messages;
     private final JoinDisplayManager joinDisplayManager;
     private ArenaPlayerCountProvider playerCountProvider = arena -> 0;
+    private JoinManager joinManager;
 
     private final Map<String, GameSession> sessions = new HashMap<>();
 
@@ -52,6 +55,10 @@ public final class GameManager {
         if (playerCountProvider != null) {
             this.playerCountProvider = playerCountProvider;
         }
+    }
+
+    public void setJoinManager(JoinManager joinManager) {
+        this.joinManager = joinManager;
     }
 
     public void load() {
@@ -80,6 +87,10 @@ public final class GameManager {
 
         GameState state = getArenaState(arena);
         return state != GameState.INGAME && state != GameState.ENDING;
+    }
+
+    public boolean isFallDamageProtectionEnabled() {
+        return configManager.config().getBoolean(PREVENT_FALL_DAMAGE_PATH, true);
     }
 
     public Optional<GameSession> getSession(Arena arena) {
@@ -134,6 +145,69 @@ public final class GameManager {
         refreshDisplay(arena);
     }
 
+    public void handleQuit(Player player) {
+        if (player == null || joinManager == null) {
+            return;
+        }
+        joinManager.leave(player, false);
+    }
+
+    public void handleDeath(Player player) {
+        // Respawn location is applied in PlayerRespawnEvent when the player is in-game.
+    }
+
+    public GameActionResult forceStart(Arena arena) {
+        if (arena == null) {
+            return GameActionResult.NOT_RUNNING;
+        }
+
+        GameSession session = getOrCreateSession(arena);
+        GameState state = session.getState();
+
+        if (state == GameState.INGAME || state == GameState.ENDING) {
+            return GameActionResult.ALREADY_RUNNING;
+        }
+
+        if (playerCountProvider.getPlayerCount(arena) < 1) {
+            return GameActionResult.NO_PLAYERS;
+        }
+
+        if (arena.spawnCount() == 0) {
+            return GameActionResult.MISSING_SPAWNS;
+        }
+
+        cancelCountdown(arena);
+        startGame(arena, true);
+        return GameActionResult.SUCCESS;
+    }
+
+    public GameActionResult stopGame(Arena arena) {
+        if (arena == null) {
+            return GameActionResult.NOT_RUNNING;
+        }
+
+        GameSession session = getSession(arena).orElse(null);
+        if (session == null) {
+            return GameActionResult.NOT_RUNNING;
+        }
+
+        GameState state = session.getState();
+        if (state == GameState.WAITING && !session.isCountdownRunning()) {
+            return GameActionResult.NOT_RUNNING;
+        }
+
+        cancelCountdown(arena);
+        session.setState(GameState.ENDING);
+        refreshDisplay(arena);
+
+        teleportPlayersToLobby(arena);
+
+        session.setState(GameState.WAITING);
+        broadcast(arena, "game.stopped", placeholders(arena));
+        refreshDisplay(arena);
+        return GameActionResult.SUCCESS;
+    }
+
     public void startCountdown(Arena arena) {
         if (arena == null) {
             return;
@@ -179,6 +253,10 @@ public final class GameManager {
     }
 
     public void startGame(Arena arena) {
+        startGame(arena, false);
+    }
+
+    public void startGame(Arena arena, boolean force) {
         if (arena == null) {
             return;
         }
@@ -189,10 +267,15 @@ public final class GameManager {
 
         List<Player> onlinePlayers = getOnlinePlayers(arena);
 
-        if (onlinePlayers.size() < arena.minPlayers()) {
+        if (!force && onlinePlayers.size() < arena.minPlayers()) {
             session.setState(GameState.WAITING);
             broadcast(arena, "game.not-enough-players", placeholders(arena));
             refreshDisplay(arena);
+            return;
+        }
+
+        if (force && onlinePlayers.isEmpty()) {
+            session.setState(GameState.WAITING);
             return;
         }
 
@@ -240,16 +323,21 @@ public final class GameManager {
         return online;
     }
 
-    public void teleportToRandomSpawn(Player player, Arena arena) {
-        if (player == null || arena == null || arena.spawnCount() == 0) {
-            return;
+    public Optional<Location> getRandomSpawn(Arena arena) {
+        if (arena == null || arena.spawnCount() == 0) {
+            return Optional.empty();
         }
 
         List<Location> spawns = arena.spawns();
         Location spawn = spawns.get(ThreadLocalRandom.current().nextInt(spawns.size()));
-        if (spawn != null && spawn.getWorld() != null) {
-            player.teleport(spawn);
+        if (spawn == null || spawn.getWorld() == null) {
+            return Optional.empty();
         }
+        return Optional.of(spawn.clone());
+    }
+
+    public void teleportToRandomSpawn(Player player, Arena arena) {
+        getRandomSpawn(arena).ifPresent(player::teleport);
     }
 
     public void broadcast(Arena arena, String messagePath, Map<String, String> placeholders) {
@@ -284,6 +372,20 @@ public final class GameManager {
             }
         }
         return false;
+    }
+
+    public boolean isInWaterFight(Player player) {
+        if (player == null || joinManager == null) {
+            return false;
+        }
+        return joinManager.isInArena(player);
+    }
+
+    public Optional<Arena> getArena(Player player) {
+        if (joinManager == null) {
+            return Optional.empty();
+        }
+        return joinManager.getArena(player);
     }
 
     public void removeSession(String arenaId) {
@@ -325,6 +427,21 @@ public final class GameManager {
         }
 
         session.setCountdownSecondsRemaining(remaining - 1);
+    }
+
+    private void teleportPlayersToLobby(Arena arena) {
+        if (!arena.hasLobby()) {
+            return;
+        }
+
+        Location lobby = arena.lobby();
+        if (lobby == null || lobby.getWorld() == null) {
+            return;
+        }
+
+        for (Player player : getOnlinePlayers(arena)) {
+            player.teleport(lobby);
+        }
     }
 
     private boolean shouldBroadcastTick(int remainingSeconds) {
