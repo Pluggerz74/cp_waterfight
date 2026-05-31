@@ -3,6 +3,7 @@ package de.codingplugs.cpwaterfight.protection;
 import de.codingplugs.cpwaterfight.config.ConfigManager;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -64,6 +65,48 @@ public final class ProtectionSettings {
 
     public boolean restrictCommandsIngame() {
         return config().getBoolean(ROOT + "restrict-commands-ingame", true);
+    }
+
+    public String summary() {
+        List<String> enabled = new ArrayList<>();
+        if (blockItemDrop()) {
+            enabled.add("drop");
+        }
+        if (blockItemPickup()) {
+            enabled.add("pickup");
+        }
+        if (blockInventoryClick()) {
+            enabled.add("inventory");
+        }
+        if (blockOffhandSwap()) {
+            enabled.add("offhand");
+        }
+        if (blockBreak()) {
+            enabled.add("break");
+        }
+        if (blockPlace()) {
+            enabled.add("place");
+        }
+        if (lockFoodLevel()) {
+            enabled.add("food");
+        }
+        if (preventItemDurabilityLoss()) {
+            enabled.add("durability");
+        }
+        if (restrictCommandsIngame()) {
+            enabled.add("commands");
+        }
+        if (preventFireDamageBeforeStart()) {
+            enabled.add("pre-fire");
+        }
+        if (preventDrowningBeforeStart()) {
+            enabled.add("pre-drown");
+        }
+
+        if (enabled.isEmpty()) {
+            return "none active";
+        }
+        return String.join(", ", enabled);
     }
 
     public Set<String> allowedCommandsIngame() {

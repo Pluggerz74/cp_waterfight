@@ -6,10 +6,18 @@ general:
   reload-failure: "&cFailed to reload configuration. Check the console."
   unknown-command: "&cUnknown command. Use &f/wf help &cfor help."
   player-only: "&cThis command can only be used by players."
+  version: |
+    &b&l%game_mode% &7— &f%plugin%
+    &7Version: &f%version%
+    &7Game mode: &f%game_mode%
+    &7Paper API: &f%paper%
+    &7Java: &f%java%
 
 help:
   header: "&b&lWater Fight &r&7— Commands"
   player: |
+    &7  &f/wf help &8— &7Show commands
+    &7  &f/wf version &8— &7Plugin version info
     &7  &f/wf join <arena> &8— &7Join a Water Fight arena
     &7  &f/wf leave &8— &7Leave your current arena
   reload-line: "&7  &f/wf reload &8— &7Reload plugin configuration"
@@ -79,6 +87,7 @@ arena:
     setmax: "&7Usage: &f/wf setmax <arena> <amount>"
     rename: "&7Usage: &f/wf rename <arena> <displayName>"
     validate: "&7Usage: &f/wf validate <arena>"
+    debug: "&7Usage: &f/wf debug <arena>"
 
 game:
   countdown-started: "&aWater Fight starts in &f%seconds% &aseconds! &7(&f%players%&7/&f%min_players%&7)"

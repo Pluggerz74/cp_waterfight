@@ -21,7 +21,10 @@ import de.codingplugs.cpwaterfight.command.arena.TpArenaSubCommand;
 import de.codingplugs.cpwaterfight.command.arena.ValidateArenaSubCommand;
 import de.codingplugs.cpwaterfight.command.join.JoinArenaSubCommand;
 import de.codingplugs.cpwaterfight.command.join.LeaveSubCommand;
+import de.codingplugs.cpwaterfight.command.VersionSubCommand;
+import de.codingplugs.cpwaterfight.command.arena.DebugArenaSubCommand;
 import de.codingplugs.cpwaterfight.config.ConfigManager;
+import de.codingplugs.cpwaterfight.config.ConfigSanityChecker;
 import de.codingplugs.cpwaterfight.display.JoinDisplayManager;
 import de.codingplugs.cpwaterfight.game.GameManager;
 import de.codingplugs.cpwaterfight.game.GameStateLabels;
@@ -102,6 +105,7 @@ public final class CPWaterFight extends JavaPlugin {
         }
 
         joinDisplayManager.refreshAll(joinManager::getPlayerCount);
+        runConfigSanityCheck();
     }
 
     private boolean initialize() {
@@ -162,6 +166,7 @@ public final class CPWaterFight extends JavaPlugin {
 
             registerCommands();
             registerListeners();
+            runConfigSanityCheck();
             return true;
         } catch (Exception exception) {
             getLogger().log(Level.SEVERE, "Failed to start " + GAME_MODE_NAME, exception);
@@ -172,6 +177,7 @@ public final class CPWaterFight extends JavaPlugin {
     private void registerCommands() {
         List<SubCommand> subCommands = List.of(
                 new HelpSubCommand(messageManager),
+                new VersionSubCommand(this, messageManager),
                 new ReloadSubCommand(this, messageManager),
                 new JoinArenaSubCommand(messageManager, arenaManager, joinManager),
                 new LeaveSubCommand(messageManager, joinManager),
@@ -188,7 +194,16 @@ public final class CPWaterFight extends JavaPlugin {
                 new SetMinSubCommand(messageManager, arenaManager, joinManager, joinDisplayManager),
                 new SetMaxSubCommand(messageManager, arenaManager, joinManager, joinDisplayManager),
                 new RenameArenaSubCommand(messageManager, arenaManager, joinManager, joinDisplayManager),
-                new ValidateArenaSubCommand(messageManager, arenaManager)
+                new ValidateArenaSubCommand(messageManager, arenaManager),
+                new DebugArenaSubCommand(
+                        messageManager,
+                        arenaManager,
+                        joinManager,
+                        gameManager,
+                        levelManager,
+                        configManager,
+                        protectionSettings
+                )
         );
 
         WaterFightCommand executor = new WaterFightCommand(messageManager, subCommands);
@@ -268,5 +283,13 @@ public final class CPWaterFight extends JavaPlugin {
 
     public boolean isPluginReady() {
         return enabled;
+    }
+
+    private void runConfigSanityCheck() {
+        if (configManager == null || levelManager == null || protectionSettings == null) {
+            return;
+        }
+
+        new ConfigSanityChecker(configManager, levelManager, protectionSettings).validate(getLogger());
     }
 }

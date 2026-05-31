@@ -35,6 +35,7 @@
     </dependencies>
 
     <build>
+        <!-- Release JAR: target/cp_waterfight-<version>.jar (e.g. cp_waterfight-1.0.0-SNAPSHOT.jar) -->
         <defaultGoal>clean package</defaultGoal>
         <finalName>${project.artifactId}-${project.version}</finalName>
         <resources>
