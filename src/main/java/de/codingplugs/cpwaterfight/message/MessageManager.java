@@ -63,6 +63,13 @@ public final class MessageManager {
         return LEGACY.deserialize(format(path, placeholders));
     }
 
+    public Component componentFromRaw(String rawText) {
+        if (rawText == null || rawText.isEmpty()) {
+            return Component.empty();
+        }
+        return LEGACY.deserialize(rawText);
+    }
+
     public void send(CommandSender sender, String path) {
         send(sender, path, Collections.emptyMap());
     }

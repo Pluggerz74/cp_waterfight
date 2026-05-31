@@ -60,6 +60,8 @@ On first run, the plugin creates these files in `plugins/cp_waterfight/`:
 | Command | Permission | Description |
 |---------|------------|-------------|
 | `/wf help` | `cpwaterfight.use` | Show available commands |
+| `/wf join <arena>` | `cpwaterfight.join` | Join an arena (command or join block) |
+| `/wf leave` | `cpwaterfight.join` | Leave your current arena |
 | `/wf reload` | `cpwaterfight.admin` | Reload all configuration files |
 | `/wf create <arena>` | `cpwaterfight.admin` | Create a new arena |
 | `/wf delete <arena>` | `cpwaterfight.admin` | Delete an arena |

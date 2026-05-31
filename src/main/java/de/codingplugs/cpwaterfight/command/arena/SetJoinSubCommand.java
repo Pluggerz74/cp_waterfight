@@ -1,12 +1,16 @@
 package de.codingplugs.cpwaterfight.command.arena;
 
+import de.codingplugs.cpwaterfight.arena.Arena;
 import de.codingplugs.cpwaterfight.arena.ArenaManager;
 import de.codingplugs.cpwaterfight.command.PlayerSubCommand;
+import de.codingplugs.cpwaterfight.display.JoinDisplayManager;
+import de.codingplugs.cpwaterfight.join.JoinManager;
 import de.codingplugs.cpwaterfight.message.MessageManager;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public final class SetJoinSubCommand extends PlayerSubCommand {
@@ -14,10 +18,19 @@ public final class SetJoinSubCommand extends PlayerSubCommand {
     private static final int TARGET_RANGE = 6;
 
     private final ArenaManager arenaManager;
+    private final JoinManager joinManager;
+    private final JoinDisplayManager joinDisplayManager;
 
-    public SetJoinSubCommand(MessageManager messages, ArenaManager arenaManager) {
+    public SetJoinSubCommand(
+            MessageManager messages,
+            ArenaManager arenaManager,
+            JoinManager joinManager,
+            JoinDisplayManager joinDisplayManager
+    ) {
         super(messages);
         this.arenaManager = arenaManager;
+        this.joinManager = joinManager;
+        this.joinDisplayManager = joinDisplayManager;
     }
 
     @Override
@@ -32,7 +45,8 @@ public final class SetJoinSubCommand extends PlayerSubCommand {
         }
 
         String id = args[1];
-        if (!arenaManager.exists(id)) {
+        Arena arena = arenaManager.getArena(id).orElse(null);
+        if (arena == null) {
             messages.sendPrefixed(player, "arena.not-found", Map.of("id", id));
             return true;
         }
@@ -44,7 +58,12 @@ public final class SetJoinSubCommand extends PlayerSubCommand {
         }
 
         if (arenaManager.setJoinBlock(id, target.getLocation())) {
-            messages.sendPrefixed(player, "arena.join-set", Map.of("id", id.toLowerCase()));
+            String normalizedId = id.toLowerCase(Locale.ROOT);
+            arenaManager.getArena(normalizedId).ifPresent(refreshed -> joinDisplayManager.refreshArena(
+                    refreshed,
+                    joinManager.getPlayerCount(refreshed)
+            ));
+            messages.sendPrefixed(player, "arena.join-set", Map.of("id", normalizedId));
         }
         return true;
     }

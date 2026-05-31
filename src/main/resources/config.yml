@@ -16,3 +16,12 @@ broadcast-events: true
 
 # Debug logging (disable in production)
 debug: false
+
+# TextDisplay above join blocks
+join-display:
+  enabled: true
+  height-offset: 1.8
+  lines:
+    - "&b&lWater Fight"
+    - "&7Spieler: &a%players% &7/ &a%max_players%"
+    - "&7Map: &e%map%"

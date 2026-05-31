@@ -9,9 +9,14 @@ general:
 
 help:
   header: "&b&lWater Fight &r&7— Commands"
+  player: |
+    &7  &f/wf join <arena> &8— &7Join a Water Fight arena
+    &7  &f/wf leave &8— &7Leave your current arena
   reload-line: "&7  &f/wf reload &8— &7Reload plugin configuration"
   admin: |
     &7  &f/wf help &8— &7Show this help page
+    &7  &f/wf join <arena> &8— &7Join an arena
+    &7  &f/wf leave &8— &7Leave your current arena
     &7  &f/wf reload &8— &7Reload plugin configuration
     &7  &f/wf create <arena> &8— &7Create a new arena
     &7  &f/wf delete <arena> &8— &7Delete an arena
@@ -49,3 +54,13 @@ arena:
     setjoin: "&7Usage: &f/wf setjoin <arena>"
     addspawn: "&7Usage: &f/wf addspawn <arena>"
     info: "&7Usage: &f/wf info <arena>"
+
+join:
+  joined-arena: "&aYou joined &f%arena%&a."
+  left-arena: "&7You left &f%arena%&7."
+  already-in-arena: "&7You are already in &f%arena%&7."
+  not-in-arena: "&7You are not in a Water Fight arena."
+  arena-full: "&c%arena% is full. &7(&f%max%&7 players)"
+  lobby-missing: "&c%arena% has no lobby configured yet."
+  usage-join: "&7Usage: &f/wf join <arena>"
+  usage-leave: "&7Usage: &f/wf leave"

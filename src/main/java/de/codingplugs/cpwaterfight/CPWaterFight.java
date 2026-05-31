@@ -12,10 +12,14 @@ import de.codingplugs.cpwaterfight.command.arena.CreateArenaSubCommand;
 import de.codingplugs.cpwaterfight.command.arena.DeleteArenaSubCommand;
 import de.codingplugs.cpwaterfight.command.arena.SetJoinSubCommand;
 import de.codingplugs.cpwaterfight.command.arena.SetLobbySubCommand;
+import de.codingplugs.cpwaterfight.command.join.JoinArenaSubCommand;
+import de.codingplugs.cpwaterfight.command.join.LeaveSubCommand;
 import de.codingplugs.cpwaterfight.config.ConfigManager;
+import de.codingplugs.cpwaterfight.display.JoinDisplayManager;
 import de.codingplugs.cpwaterfight.game.GameManager;
 import de.codingplugs.cpwaterfight.join.JoinManager;
 import de.codingplugs.cpwaterfight.level.LevelManager;
+import de.codingplugs.cpwaterfight.listener.JoinBlockListener;
 import de.codingplugs.cpwaterfight.message.MessageManager;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -35,6 +39,7 @@ public final class CPWaterFight extends JavaPlugin {
     private ArenaManager arenaManager;
     private GameManager gameManager;
     private JoinManager joinManager;
+    private JoinDisplayManager joinDisplayManager;
     private LevelManager levelManager;
 
     private boolean enabled;
@@ -65,12 +70,16 @@ public final class CPWaterFight extends JavaPlugin {
      * Reloads all configuration and manager state.
      */
     public void reload() {
+        joinManager.clear();
+        joinDisplayManager.removeAll();
+
         configManager.reload();
         messageManager.reload();
         arenaManager.reload();
         levelManager.reload();
         gameManager.reload();
-        joinManager.reload();
+
+        joinDisplayManager.refreshAll(joinManager::getPlayerCount);
     }
 
     private boolean initialize() {
@@ -89,13 +98,16 @@ public final class CPWaterFight extends JavaPlugin {
             gameManager = new GameManager();
             gameManager.load();
 
-            joinManager = new JoinManager();
+            joinDisplayManager = new JoinDisplayManager(configManager, messageManager, arenaManager);
+            joinManager = new JoinManager(messageManager, arenaManager, joinDisplayManager);
             joinManager.load();
+            joinDisplayManager.load();
 
             levelManager = new LevelManager(configManager);
             levelManager.load();
 
             registerCommands();
+            registerListeners();
             return true;
         } catch (Exception exception) {
             getLogger().log(Level.SEVERE, "Failed to start " + GAME_MODE_NAME, exception);
@@ -107,10 +119,12 @@ public final class CPWaterFight extends JavaPlugin {
         List<SubCommand> subCommands = List.of(
                 new HelpSubCommand(messageManager),
                 new ReloadSubCommand(this, messageManager),
+                new JoinArenaSubCommand(messageManager, arenaManager, joinManager),
+                new LeaveSubCommand(messageManager, joinManager),
                 new CreateArenaSubCommand(messageManager, arenaManager),
-                new DeleteArenaSubCommand(messageManager, arenaManager),
+                new DeleteArenaSubCommand(messageManager, arenaManager, joinManager, joinDisplayManager),
                 new SetLobbySubCommand(messageManager, arenaManager),
-                new SetJoinSubCommand(messageManager, arenaManager),
+                new SetJoinSubCommand(messageManager, arenaManager, joinManager, joinDisplayManager),
                 new AddSpawnSubCommand(messageManager, arenaManager),
                 new ArenaInfoSubCommand(messageManager, arenaManager),
                 new ArenaListSubCommand(messageManager, arenaManager)
@@ -126,7 +140,17 @@ public final class CPWaterFight extends JavaPlugin {
         command.setTabCompleter(executor);
     }
 
+    private void registerListeners() {
+        getServer().getPluginManager().registerEvents(
+                new JoinBlockListener(arenaManager, joinManager, messageManager),
+                this
+        );
+    }
+
     private void shutdownManagers() {
+        if (joinDisplayManager != null) {
+            joinDisplayManager.shutdown();
+        }
         if (joinManager != null) {
             joinManager.shutdown();
         }
@@ -162,6 +186,10 @@ public final class CPWaterFight extends JavaPlugin {
 
     public JoinManager joinManager() {
         return joinManager;
+    }
+
+    public JoinDisplayManager joinDisplayManager() {
+        return joinDisplayManager;
     }
 
     public LevelManager levelManager() {
