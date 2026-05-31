@@ -67,6 +67,10 @@ public final class ProtectionSettings {
         return config().getBoolean(ROOT + "restrict-commands-ingame", true);
     }
 
+    public long messageCooldownMillis() {
+        return Math.max(0L, config().getLong(ROOT + "message-cooldown-millis", 1500L));
+    }
+
     public String summary() {
         List<String> enabled = new ArrayList<>();
         if (blockItemDrop()) {

@@ -30,7 +30,11 @@ public final class GameLifecycleListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player victim = event.getEntity();
-        Player killer = victim.getKiller();
+
+        if (gameManager.isMatchActive(victim)) {
+            event.getDrops().clear();
+            event.setDroppedExp(0);
+        }
 
         if (gameManager.shouldHideDeathMessages()) {
             Arena victimArena = gameManager.getArena(victim).orElse(null);
@@ -42,11 +46,10 @@ public final class GameLifecycleListener implements Listener {
             }
         }
 
-        if (killer == null) {
-            return;
+        Player killer = victim.getKiller();
+        if (killer != null) {
+            gameManager.handleKill(killer, victim);
         }
-
-        gameManager.handleKill(killer, victim);
     }
 
     @EventHandler(priority = EventPriority.HIGH)

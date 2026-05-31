@@ -23,6 +23,7 @@ game:
 
 # Arena protections while players are joined
 protection:
+  message-cooldown-millis: 1500
   block-item-drop: true
   block-item-pickup: true
   block-inventory-click: true

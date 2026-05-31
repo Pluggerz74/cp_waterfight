@@ -6,6 +6,7 @@ import de.codingplugs.cpwaterfight.game.GameManager;
 import de.codingplugs.cpwaterfight.game.GameState;
 import de.codingplugs.cpwaterfight.join.JoinManager;
 import de.codingplugs.cpwaterfight.message.MessageManager;
+import de.codingplugs.cpwaterfight.protection.ProtectionMessageThrottler;
 import de.codingplugs.cpwaterfight.protection.ProtectionSettings;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,8 +16,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -33,8 +34,8 @@ public final class GameProtectionListener implements Listener {
 
     private final JoinManager joinManager;
     private final GameManager gameManager;
-    private final MessageManager messages;
     private final ProtectionSettings protection;
+    private final ProtectionMessageThrottler messageThrottler;
 
     public GameProtectionListener(
             JoinManager joinManager,
@@ -44,8 +45,8 @@ public final class GameProtectionListener implements Listener {
     ) {
         this.joinManager = joinManager;
         this.gameManager = gameManager;
-        this.messages = messages;
         this.protection = protection;
+        this.messageThrottler = new ProtectionMessageThrottler(messages, protection);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -206,7 +207,12 @@ public final class GameProtectionListener implements Listener {
         }
 
         event.setCancelled(true);
-        messages.sendPrefixed(player, "protection.command-blocked");
+        messageThrottler.sendCommandBlocked(player);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        messageThrottler.forget(event.getPlayer());
     }
 
     private boolean isJoined(Player player) {
@@ -259,6 +265,6 @@ public final class GameProtectionListener implements Listener {
 
     private void cancelWithActionMessage(Player player, org.bukkit.event.Cancellable event) {
         event.setCancelled(true);
-        messages.sendPrefixed(player, "protection.action-blocked");
+        messageThrottler.sendActionBlocked(player);
     }
 }
