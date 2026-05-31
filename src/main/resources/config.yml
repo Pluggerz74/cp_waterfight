@@ -33,6 +33,24 @@ state-labels:
   INGAME: "Im Spiel"
   ENDING: "Beendet"
 
+# Sidebar scoreboard while players are in an arena
+scoreboard:
+  enabled: true
+  update-interval-ticks: 20
+  title: "&b&lWater Fight"
+  lines:
+    - "&7Map: &e%map%"
+    - ""
+    - "&7Dein Platz: &a#%rank%"
+    - "&7Level: &f%level% &8/ &f%max_level%"
+    - "&7Waffe: &e%weapon%"
+    - "&7Kills: &a%kills% &8/ &a%kills_required%"
+    - ""
+    - "&7Top:"
+    - "&61. %top_1_name% &8- &fLv. %top_1_level%"
+    - "&72. %top_2_name% &8- &fLv. %top_2_level%"
+    - "&c3. %top_3_name% &8- &fLv. %top_3_level%"
+
 # TextDisplay above join blocks
 join-display:
   enabled: true

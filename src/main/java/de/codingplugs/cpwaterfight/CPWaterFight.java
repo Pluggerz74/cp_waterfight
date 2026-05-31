@@ -25,6 +25,7 @@ import de.codingplugs.cpwaterfight.level.LevelManager;
 import de.codingplugs.cpwaterfight.listener.GameLifecycleListener;
 import de.codingplugs.cpwaterfight.listener.JoinBlockListener;
 import de.codingplugs.cpwaterfight.message.MessageManager;
+import de.codingplugs.cpwaterfight.scoreboard.ScoreboardManager;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -46,6 +47,7 @@ public final class CPWaterFight extends JavaPlugin {
     private JoinManager joinManager;
     private JoinDisplayManager joinDisplayManager;
     private LevelManager levelManager;
+    private ScoreboardManager scoreboardManager;
 
     private boolean enabled;
 
@@ -77,6 +79,9 @@ public final class CPWaterFight extends JavaPlugin {
     public void reload() {
         joinManager.clear();
         joinDisplayManager.removeAll();
+        if (scoreboardManager != null) {
+            scoreboardManager.shutdown();
+        }
 
         configManager.reload();
         messageManager.reload();
@@ -84,6 +89,9 @@ public final class CPWaterFight extends JavaPlugin {
         levelManager.reload();
         gameManager.reload();
         gameStateLabels.reload();
+        if (scoreboardManager != null) {
+            scoreboardManager.reload();
+        }
 
         joinDisplayManager.refreshAll(joinManager::getPlayerCount);
     }
@@ -124,13 +132,24 @@ public final class CPWaterFight extends JavaPlugin {
             );
             gameManager.load();
 
+            scoreboardManager = new ScoreboardManager(this, configManager, gameManager, levelManager);
+
             joinDisplayManager.attachGameManager(gameManager);
 
-            joinManager = new JoinManager(messageManager, arenaManager, joinDisplayManager, gameManager);
+            joinManager = new JoinManager(
+                    messageManager,
+                    arenaManager,
+                    joinDisplayManager,
+                    gameManager,
+                    scoreboardManager
+            );
             gameManager.setPlayerCountProvider(joinManager::getPlayerCount);
             gameManager.setJoinManager(joinManager);
+            gameManager.setScoreboardManager(scoreboardManager);
+            scoreboardManager.setJoinManager(joinManager);
             joinManager.load();
             joinDisplayManager.load();
+            scoreboardManager.load();
 
             registerCommands();
             registerListeners();
@@ -180,6 +199,9 @@ public final class CPWaterFight extends JavaPlugin {
     private void shutdownManagers() {
         if (joinDisplayManager != null) {
             joinDisplayManager.shutdown();
+        }
+        if (scoreboardManager != null) {
+            scoreboardManager.shutdown();
         }
         if (joinManager != null) {
             joinManager.shutdown();

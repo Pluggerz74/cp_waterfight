@@ -5,6 +5,7 @@ import de.codingplugs.cpwaterfight.arena.ArenaManager;
 import de.codingplugs.cpwaterfight.display.JoinDisplayManager;
 import de.codingplugs.cpwaterfight.game.GameManager;
 import de.codingplugs.cpwaterfight.message.MessageManager;
+import de.codingplugs.cpwaterfight.scoreboard.ScoreboardManager;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -22,6 +23,7 @@ public final class JoinManager {
     private final ArenaManager arenaManager;
     private final JoinDisplayManager joinDisplayManager;
     private final GameManager gameManager;
+    private final ScoreboardManager scoreboardManager;
 
     private final Map<UUID, String> playerArenas = new HashMap<>();
 
@@ -29,12 +31,14 @@ public final class JoinManager {
             MessageManager messages,
             ArenaManager arenaManager,
             JoinDisplayManager joinDisplayManager,
-            GameManager gameManager
+            GameManager gameManager,
+            ScoreboardManager scoreboardManager
     ) {
         this.messages = messages;
         this.arenaManager = arenaManager;
         this.joinDisplayManager = joinDisplayManager;
         this.gameManager = java.util.Objects.requireNonNull(gameManager, "gameManager");
+        this.scoreboardManager = scoreboardManager;
     }
 
     public void load() {
@@ -106,6 +110,9 @@ public final class JoinManager {
         teleportToLobby(player, arena);
         messages.sendPrefixed(player, "join.joined-arena", Map.of("arena", arena.displayName()));
         refreshDisplay(arena);
+        if (scoreboardManager != null) {
+            scoreboardManager.show(player);
+        }
         return true;
     }
 
@@ -128,6 +135,9 @@ public final class JoinManager {
 
         arenaManager.getArena(arenaId).ifPresent(arena -> {
             gameManager.handlePlayerLeave(player, arena);
+            if (scoreboardManager != null) {
+                scoreboardManager.remove(player);
+            }
             if (notify) {
                 messages.sendPrefixed(player, "join.left-arena", Map.of("arena", arena.displayName()));
             }

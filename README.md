@@ -91,7 +91,29 @@ Lore and names support legacy `&` colors and placeholders: `%level%`, `%kills_re
 
 When a match starts, every player begins at **level 1** with the level 1 weapon kit from `levels.yml` (inventory cleared, basic vitals reset, main weapon in hotbar slot 0).
 
-During a match, valid PvP kills in the same arena advance progression (default **2 kills per level**, **20 levels**, **40 kills** total to win). Reaching the final level requirement triggers a winner broadcast and a short ending phase before players return to the lobby. Scoreboard UI follows in a later step.
+During a match, valid PvP kills in the same arena advance progression (default **2 kills per level**, **20 levels**, **40 kills** total to win). Reaching the final level requirement triggers a winner broadcast and a short ending phase before players return to the lobby.
+
+## Sidebar scoreboard (`config.yml` → `scoreboard`)
+
+While a player is in an arena queue or match, a per-player sidebar can show map, rank, level, weapon, kill progress, and the top 3 players. Toggle with `scoreboard.enabled` and set `update-interval-ticks` (default `20`).
+
+Configurable `scoreboard.title` and `scoreboard.lines` use legacy `&` colors and placeholders:
+
+| Placeholder | Meaning |
+|-------------|---------|
+| `%map%` | Arena display name |
+| `%rank%` | Player rank in the arena (same sort as gameplay) |
+| `%level%` | Current level |
+| `%max_level%` | Max level from `levels.yml` |
+| `%weapon%` | Current level weapon name (colors stripped for the line) |
+| `%kills%` | Kills on the current level |
+| `%kills_required%` | Kills needed to advance |
+| `%total_kills%` | Total kills this match |
+| `%top_1_name%` … `%top_3_name%` | Top player names (`-` if empty) |
+| `%top_1_level%` … `%top_3_level%` | Top player levels |
+| `%top_1_kills%` … `%top_3_kills%` | Top player total kills |
+
+Before a match starts, values default to level **1** and **0** kills. Ranking uses `GameManager.getRankedProgress` (level → kills on level → total kills).
 
 ## Permissions
 
@@ -115,6 +137,7 @@ cp_waterfight/
     ├── java/de/codingplugs/cpwaterfight/
     │   ├── CPWaterFight.java
     │   ├── level/          # LevelDefinition, WeaponDefinition, LevelManager
+    │   ├── scoreboard/     # ScoreboardManager, sidebar lines
     │   ├── game/
     │   ├── arena/
     │   └── ...

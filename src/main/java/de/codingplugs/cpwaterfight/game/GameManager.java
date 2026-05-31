@@ -5,6 +5,7 @@ import de.codingplugs.cpwaterfight.config.ConfigManager;
 import de.codingplugs.cpwaterfight.display.JoinDisplayManager;
 import de.codingplugs.cpwaterfight.join.ArenaPlayerCountProvider;
 import de.codingplugs.cpwaterfight.join.JoinManager;
+import de.codingplugs.cpwaterfight.scoreboard.ScoreboardManager;
 import de.codingplugs.cpwaterfight.level.LevelDefinition;
 import de.codingplugs.cpwaterfight.level.LevelManager;
 import de.codingplugs.cpwaterfight.message.MessageManager;
@@ -45,6 +46,7 @@ public final class GameManager {
     private final LevelManager levelManager;
     private ArenaPlayerCountProvider playerCountProvider = arena -> 0;
     private JoinManager joinManager;
+    private ScoreboardManager scoreboardManager;
 
     private final Map<String, GameSession> sessions = new HashMap<>();
 
@@ -70,6 +72,10 @@ public final class GameManager {
 
     public void setJoinManager(JoinManager joinManager) {
         this.joinManager = joinManager;
+    }
+
+    public void setScoreboardManager(ScoreboardManager scoreboardManager) {
+        this.scoreboardManager = scoreboardManager;
     }
 
     public void load() {
@@ -136,6 +142,7 @@ public final class GameManager {
         }
 
         refreshDisplay(arena);
+        refreshScoreboards(arena);
     }
 
     public void handlePlayerLeave(Player player, Arena arena) {
@@ -158,6 +165,7 @@ public final class GameManager {
         }
 
         refreshDisplay(arena);
+        refreshScoreboards(arena);
     }
 
     public void handleQuit(Player player) {
@@ -211,6 +219,8 @@ public final class GameManager {
         int killsRequired = levelManager.getKillsRequired(progress.getLevel());
         messages.sendPrefixed(killer, "kill.progress", progressPlaceholders(killer, arena, progress));
 
+        refreshScoreboards(arena);
+
         if (progress.getKillsOnCurrentLevel() < killsRequired) {
             return;
         }
@@ -238,6 +248,7 @@ public final class GameManager {
         progress.resetKillsOnCurrentLevel();
         equipPlayer(player, arena, progress.getLevel());
         messages.sendPrefixed(player, "level.up", progressPlaceholders(player, arena, progress));
+        refreshScoreboards(arena);
     }
 
     public void winGame(Player winner, Arena arena) {
@@ -271,6 +282,7 @@ public final class GameManager {
                 endingSeconds * 20L
         );
         session.setEndingTask(endingTask);
+        refreshScoreboards(arena);
     }
 
     public List<RankedProgressEntry> getRankedProgress(Arena arena) {
@@ -285,13 +297,10 @@ public final class GameManager {
 
         List<RankedProgressEntry> entries = new ArrayList<>();
         for (UUID playerId : session.getPlayers()) {
-            Optional<PlayerProgress> progress = session.getProgress(playerId);
-            if (progress.isEmpty()) {
-                continue;
-            }
-
+            PlayerProgress progress = session.getProgress(playerId)
+                    .orElseGet(() -> defaultLobbyProgress(playerId));
             Player player = Bukkit.getPlayer(playerId);
-            entries.add(new RankedProgressEntry(playerId, player, progress.get()));
+            entries.add(new RankedProgressEntry(playerId, player, progress));
         }
 
         entries.sort(RankedProgressEntry.comparator());
@@ -438,6 +447,7 @@ public final class GameManager {
         );
         session.setCountdownTask(task);
         refreshDisplay(arena);
+        refreshScoreboards(arena);
     }
 
     public void cancelCountdown(Arena arena) {
@@ -453,6 +463,7 @@ public final class GameManager {
             }
         });
         refreshDisplay(arena);
+        refreshScoreboards(arena);
     }
 
     public void startGame(Arena arena) {
@@ -500,6 +511,7 @@ public final class GameManager {
 
         broadcast(arena, "game.started", placeholders(arena));
         refreshDisplay(arena);
+        refreshScoreboards(arena);
     }
 
     private void equipPlayer(Player player, Arena arena, int level) {
@@ -664,6 +676,7 @@ public final class GameManager {
             session.setState(GameState.WAITING);
             broadcast(arena, "game.countdown-cancelled", placeholders(arena));
             refreshDisplay(arena);
+            refreshScoreboards(arena);
             return;
         }
 
@@ -725,6 +738,19 @@ public final class GameManager {
         session.setWinResolved(false);
         session.setState(GameState.WAITING);
         refreshDisplay(arena);
+        refreshScoreboards(arena);
+    }
+
+    private static PlayerProgress defaultLobbyProgress(UUID playerId) {
+        PlayerProgress progress = new PlayerProgress(playerId);
+        progress.reset();
+        return progress;
+    }
+
+    private void refreshScoreboards(Arena arena) {
+        if (scoreboardManager != null && arena != null) {
+            scoreboardManager.updateArena(arena);
+        }
     }
 
     private Map<String, String> progressPlaceholders(Player player, Arena arena, PlayerProgress progress) {
