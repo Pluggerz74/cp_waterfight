@@ -33,6 +33,9 @@ public final class GameManager {
     private static final String COUNTDOWN_SECONDS_PATH = "game.countdown-seconds";
     private static final String PREVENT_FALL_DAMAGE_PATH = "game.prevent-fall-damage-before-start";
     private static final String CLEAR_INVENTORY_ON_STOP_PATH = "game.clear-inventory-on-stop";
+    private static final String ENDING_SECONDS_PATH = "game.ending-seconds";
+    private static final String HIDE_DEATH_MESSAGES_PATH = "game.hide-death-messages";
+    private static final String BROADCAST_LEVEL_UP_PATH = "game.broadcast-level-up";
     private static final Set<Integer> MILESTONE_SECONDS = Set.of(60, 30, 10);
 
     private final JavaPlugin plugin;
@@ -101,6 +104,10 @@ public final class GameManager {
         return configManager.config().getBoolean(PREVENT_FALL_DAMAGE_PATH, true);
     }
 
+    public boolean shouldHideDeathMessages() {
+        return configManager.config().getBoolean(HIDE_DEATH_MESSAGES_PATH, true);
+    }
+
     public Optional<GameSession> getSession(Arena arena) {
         if (arena == null) {
             return Optional.empty();
@@ -160,12 +167,139 @@ public final class GameManager {
         joinManager.leave(player, false);
     }
 
-    public void handleDeath(Player player) {
-        // Respawn location is applied in PlayerRespawnEvent when the player is in-game.
+    public void handleKill(Player killer, Player victim) {
+        if (killer == null || victim == null || joinManager == null) {
+            return;
+        }
+
+        if (killer.getUniqueId().equals(victim.getUniqueId())) {
+            return;
+        }
+
+        Optional<Arena> killerArena = getArena(killer);
+        Optional<Arena> victimArena = getArena(victim);
+        if (killerArena.isEmpty() || victimArena.isEmpty()) {
+            return;
+        }
+
+        Arena arena = killerArena.get();
+        if (!arena.id().equals(victimArena.get().id())) {
+            return;
+        }
+
+        if (getArenaState(arena) != GameState.INGAME) {
+            return;
+        }
+
+        advanceProgress(killer, arena);
+    }
+
+    public void advanceProgress(Player killer, Arena arena) {
+        if (killer == null || arena == null) {
+            return;
+        }
+
+        GameSession session = getSession(arena).orElse(null);
+        if (session == null || session.getState() != GameState.INGAME || session.isWinResolved()) {
+            return;
+        }
+
+        PlayerProgress progress = session.getOrCreateProgress(killer.getUniqueId());
+        progress.incrementTotalKills();
+        progress.addKillOnCurrentLevel();
+
+        int killsRequired = levelManager.getKillsRequired(progress.getLevel());
+        messages.sendPrefixed(killer, "kill.progress", progressPlaceholders(killer, arena, progress));
+
+        if (progress.getKillsOnCurrentLevel() < killsRequired) {
+            return;
+        }
+
+        int maxLevel = levelManager.getMaxLevel();
+        if (progress.getLevel() < maxLevel) {
+            levelUp(killer, arena, progress);
+            if (isBroadcastLevelUpEnabled()) {
+                Map<String, String> broadcastPlaceholders = progressPlaceholders(killer, arena, progress);
+                broadcastPlaceholders.put("player", killer.getName());
+                broadcast(arena, "level.up-broadcast", broadcastPlaceholders);
+            }
+            return;
+        }
+
+        winGame(killer, arena);
+    }
+
+    public void levelUp(Player player, Arena arena, PlayerProgress progress) {
+        if (player == null || arena == null || progress == null) {
+            return;
+        }
+
+        progress.setLevel(progress.getLevel() + 1);
+        progress.resetKillsOnCurrentLevel();
+        equipPlayer(player, arena, progress.getLevel());
+        messages.sendPrefixed(player, "level.up", progressPlaceholders(player, arena, progress));
+    }
+
+    public void winGame(Player winner, Arena arena) {
+        if (winner == null || arena == null) {
+            return;
+        }
+
+        GameSession session = getSession(arena).orElse(null);
+        if (session == null || session.getState() != GameState.INGAME || session.isWinResolved()) {
+            return;
+        }
+
+        session.setWinResolved(true);
+        session.setState(GameState.ENDING);
+        refreshDisplay(arena);
+
+        Map<String, String> winnerPlaceholders = progressPlaceholders(winner, arena,
+                session.getOrCreateProgress(winner.getUniqueId()));
+        winnerPlaceholders.put("player", winner.getName());
+        broadcast(arena, "game.winner", winnerPlaceholders);
+
+        int endingSeconds = endingSeconds();
+        Map<String, String> endingPlaceholders = placeholders(arena, endingSeconds);
+        endingPlaceholders.put("player", winner.getName());
+        broadcast(arena, "game.ending", endingPlaceholders);
+
+        session.cancelEnding();
+        BukkitTask endingTask = Bukkit.getScheduler().runTaskLater(
+                plugin,
+                () -> finishMatch(arena),
+                endingSeconds * 20L
+        );
+        session.setEndingTask(endingTask);
+    }
+
+    public List<RankedProgressEntry> getRankedProgress(Arena arena) {
+        if (arena == null) {
+            return List.of();
+        }
+
+        GameSession session = sessions.get(arena.id());
+        if (session == null) {
+            return List.of();
+        }
+
+        List<RankedProgressEntry> entries = new ArrayList<>();
+        for (UUID playerId : session.getPlayers()) {
+            Optional<PlayerProgress> progress = session.getProgress(playerId);
+            if (progress.isEmpty()) {
+                continue;
+            }
+
+            Player player = Bukkit.getPlayer(playerId);
+            entries.add(new RankedProgressEntry(playerId, player, progress.get()));
+        }
+
+        entries.sort(RankedProgressEntry.comparator());
+        return List.copyOf(entries);
     }
 
     public void handleRespawn(Player player) {
-        if (player == null || !isInGame(player)) {
+        if (player == null || !isMatchActive(player)) {
             return;
         }
 
@@ -270,18 +404,10 @@ public final class GameManager {
         }
 
         cancelCountdown(arena);
-        session.setState(GameState.ENDING);
-        refreshDisplay(arena);
-
-        if (isClearInventoryOnStopEnabled()) {
-            clearInventories(arena);
-        }
-
-        teleportPlayersToLobby(arena);
-
-        session.setState(GameState.WAITING);
+        session.cancelEnding();
+        session.setWinResolved(false);
+        finishMatch(arena);
         broadcast(arena, "game.stopped", placeholders(arena));
-        refreshDisplay(arena);
         return GameActionResult.SUCCESS;
     }
 
@@ -486,6 +612,21 @@ public final class GameManager {
         return false;
     }
 
+    public boolean isMatchActive(Player player) {
+        if (player == null) {
+            return false;
+        }
+
+        UUID playerId = player.getUniqueId();
+        for (GameSession session : sessions.values()) {
+            GameState state = session.getState();
+            if ((state == GameState.INGAME || state == GameState.ENDING) && session.hasPlayer(playerId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean isInWaterFight(Player player) {
         if (player == null || joinManager == null) {
             return false;
@@ -555,6 +696,53 @@ public final class GameManager {
 
     private boolean isClearInventoryOnStopEnabled() {
         return configManager.config().getBoolean(CLEAR_INVENTORY_ON_STOP_PATH, true);
+    }
+
+    private boolean isBroadcastLevelUpEnabled() {
+        return configManager.config().getBoolean(BROADCAST_LEVEL_UP_PATH, true);
+    }
+
+    private int endingSeconds() {
+        return Math.max(1, configManager.config().getInt(ENDING_SECONDS_PATH, 5));
+    }
+
+    private void finishMatch(Arena arena) {
+        if (arena == null) {
+            return;
+        }
+
+        GameSession session = getOrCreateSession(arena);
+        session.cancelCountdown();
+        session.cancelEnding();
+
+        if (isClearInventoryOnStopEnabled()) {
+            clearInventories(arena);
+        }
+
+        teleportPlayersToLobby(arena);
+        resetProgress(arena);
+
+        session.setWinResolved(false);
+        session.setState(GameState.WAITING);
+        refreshDisplay(arena);
+    }
+
+    private Map<String, String> progressPlaceholders(Player player, Arena arena, PlayerProgress progress) {
+        Map<String, String> values = new HashMap<>(placeholders(arena));
+        values.put("player", player.getName());
+        values.put("level", String.valueOf(progress.getLevel()));
+        values.put("max_level", String.valueOf(levelManager.getMaxLevel()));
+        values.put("kills", String.valueOf(progress.getKillsOnCurrentLevel()));
+        values.put("kills_required", String.valueOf(levelManager.getKillsRequired(progress.getLevel())));
+        values.put("total_kills", String.valueOf(progress.getTotalKills()));
+        values.put("weapon", weaponNameForLevel(progress.getLevel()));
+        return values;
+    }
+
+    private String weaponNameForLevel(int level) {
+        return levelManager.getLevel(level)
+                .map(definition -> stripColor(definition.weapon().displayName()))
+                .orElse("Weapon");
     }
 
     private static String stripColor(String input) {

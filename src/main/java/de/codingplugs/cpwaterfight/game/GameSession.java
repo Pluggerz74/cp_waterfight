@@ -22,7 +22,9 @@ public final class GameSession {
     private GameState state = GameState.WAITING;
 
     private BukkitTask countdownTask;
+    private BukkitTask endingTask;
     private int countdownSecondsRemaining;
+    private boolean winResolved;
 
     public GameSession(String arenaId) {
         this.arenaId = Objects.requireNonNull(arenaId, "arenaId");
@@ -110,8 +112,34 @@ public final class GameSession {
         countdownSecondsRemaining = 0;
     }
 
+    public boolean isEndingScheduled() {
+        return endingTask != null && !endingTask.isCancelled();
+    }
+
+    public void setEndingTask(BukkitTask endingTask) {
+        cancelEnding();
+        this.endingTask = endingTask;
+    }
+
+    public void cancelEnding() {
+        if (endingTask != null) {
+            endingTask.cancel();
+            endingTask = null;
+        }
+    }
+
+    public boolean isWinResolved() {
+        return winResolved;
+    }
+
+    public void setWinResolved(boolean winResolved) {
+        this.winResolved = winResolved;
+    }
+
     public void reset() {
         resetCountdown();
+        cancelEnding();
+        winResolved = false;
         players.clear();
         resetProgress();
         state = GameState.WAITING;

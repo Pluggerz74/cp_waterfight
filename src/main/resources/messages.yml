@@ -70,12 +70,19 @@ game:
   no-players: "&cNo players joined on &f%arena%&c."
   force-start-success: "&aForce-started Water Fight on &f%arena%&a."
   stopped: "&7Water Fight on &f%arena% &7was stopped."
+  winner: "&6&l%player% &awon Water Fight on &f%arena%&a!"
+  ending: "&7Match ending in &f%seconds% &7seconds..."
   usage-forcestart: "&7Usage: &f/wf forcestart <arena>"
   usage-stop: "&7Usage: &f/wf stop <arena>"
 
 level:
   equipped: "&aEquipped &f%weapon% &7(Level &f%level%&7, &f%kills_required% &7kills to advance)"
   missing-config: "&cNo weapon configuration found for level &f%level%&c."
+  up: "&aLevel up! &f%weapon% &7(Level &f%level%&7/&f%max_level%&7)"
+  up-broadcast: "&e%player% &7reached level &f%level% &7with &f%weapon%&7!"
+
+kill:
+  progress: "&7Kill! &f%kills%&7/&f%kills_required% &7on level &f%level% &7(&f%weapon%&7) — &f%total_kills% &7total"
 
 join:
   joined-arena: "&aYou joined &f%arena%&a."

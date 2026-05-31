@@ -89,7 +89,9 @@ Lore and names support legacy `&` colors and placeholders: `%level%`, `%kills_re
 
 `LevelManager` loads definitions and can build `ItemStack` kits from config. Invalid materials or enchantments are logged and skipped safely.
 
-When a match starts, every player begins at **level 1** with the level 1 weapon kit from `levels.yml` (inventory cleared, basic vitals reset, main weapon in hotbar slot 0). Kill-based level-ups and win detection are added in later steps.
+When a match starts, every player begins at **level 1** with the level 1 weapon kit from `levels.yml` (inventory cleared, basic vitals reset, main weapon in hotbar slot 0).
+
+During a match, valid PvP kills in the same arena advance progression (default **2 kills per level**, **20 levels**, **40 kills** total to win). Reaching the final level requirement triggers a winner broadcast and a short ending phase before players return to the lobby. Scoreboard UI follows in a later step.
 
 ## Permissions
 
