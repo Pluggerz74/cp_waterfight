@@ -57,11 +57,13 @@ On first run, the plugin creates these files in `plugins/cp_waterfight/`:
 
 ## Commands
 
-| Command | Alias | Description |
-|---------|-------|-------------|
-| `/waterfight` | `/wf` | Main command (subcommands in later steps) |
+| Command | Permission | Description |
+|---------|------------|-------------|
+| `/wf help` | `cpwaterfight.use` | Show available commands |
+| `/wf reload` | `cpwaterfight.admin` | Reload all configuration files |
+| `/waterfight` | — | Alias root for `/wf` |
 
-Command handlers will be wired in the next development phase.
+Running `/wf` or `/waterfight` without arguments shows help.
 
 ## Permissions
 

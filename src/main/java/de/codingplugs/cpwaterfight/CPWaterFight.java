@@ -1,14 +1,18 @@
 package de.codingplugs.cpwaterfight;
 
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import de.codingplugs.cpwaterfight.arena.ArenaManager;
+import de.codingplugs.cpwaterfight.command.HelpSubCommand;
+import de.codingplugs.cpwaterfight.command.ReloadSubCommand;
+import de.codingplugs.cpwaterfight.command.SubCommand;
+import de.codingplugs.cpwaterfight.command.WaterFightCommand;
+import de.codingplugs.cpwaterfight.config.ConfigManager;
+import de.codingplugs.cpwaterfight.game.GameManager;
+import de.codingplugs.cpwaterfight.join.JoinManager;
+import de.codingplugs.cpwaterfight.level.LevelManager;
+import de.codingplugs.cpwaterfight.message.MessageManager;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+
 import java.util.List;
 import java.util.logging.Level;
 
@@ -19,36 +23,24 @@ public final class CPWaterFight extends JavaPlugin {
 
     public static final String GAME_MODE_NAME = "Water Fight";
 
-    private static final String CONFIG_FILE = "config.yml";
-    private static final String ARENAS_FILE = "arenas.yml";
-    private static final String LEVELS_FILE = "levels.yml";
-    private static final String MESSAGES_FILE = "messages.yml";
-
-    private static final List<String> CONFIG_FILES = List.of(
-            CONFIG_FILE,
-            ARENAS_FILE,
-            LEVELS_FILE,
-            MESSAGES_FILE
-    );
-
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
-
-    private FileConfiguration config;
-    private FileConfiguration arenas;
-    private FileConfiguration levels;
-    private FileConfiguration messages;
+    private ConfigManager configManager;
+    private MessageManager messageManager;
+    private ArenaManager arenaManager;
+    private GameManager gameManager;
+    private JoinManager joinManager;
+    private LevelManager levelManager;
 
     private boolean enabled;
 
     @Override
     public void onEnable() {
-        if (!bootstrap()) {
+        if (!initialize()) {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
         enabled = true;
-        getLogger().info(GAME_MODE_NAME + " foundation loaded.");
+        getLogger().info(GAME_MODE_NAME + " enabled.");
     }
 
     @Override
@@ -57,20 +49,46 @@ public final class CPWaterFight extends JavaPlugin {
             return;
         }
 
+        shutdownManagers();
         enabled = false;
-        getLogger().info(GAME_MODE_NAME + " shut down.");
+        getLogger().info(GAME_MODE_NAME + " disabled.");
     }
 
     /**
-     * Loads configuration files and prepares the plugin runtime.
-     *
-     * @return {@code true} when startup succeeded
+     * Reloads all configuration and manager state.
      */
-    private boolean bootstrap() {
+    public void reload() {
+        configManager.reload();
+        messageManager.reload();
+        arenaManager.reload();
+        levelManager.reload();
+        gameManager.reload();
+        joinManager.reload();
+    }
+
+    private boolean initialize() {
         try {
-            ensureDataFolder();
-            installDefaultConfigs();
-            reloadAllConfigs();
+            configManager = new ConfigManager(this);
+            if (!configManager.load()) {
+                return false;
+            }
+
+            messageManager = new MessageManager(configManager);
+            messageManager.load();
+
+            arenaManager = new ArenaManager(configManager);
+            arenaManager.load();
+
+            gameManager = new GameManager();
+            gameManager.load();
+
+            joinManager = new JoinManager();
+            joinManager.load();
+
+            levelManager = new LevelManager(configManager);
+            levelManager.load();
+
+            registerCommands();
             return true;
         } catch (Exception exception) {
             getLogger().log(Level.SEVERE, "Failed to start " + GAME_MODE_NAME, exception);
@@ -78,86 +96,62 @@ public final class CPWaterFight extends JavaPlugin {
         }
     }
 
-    private void ensureDataFolder() {
-        if (!getDataFolder().exists() && !getDataFolder().mkdirs()) {
-            throw new IllegalStateException("Could not create plugin data folder.");
+    private void registerCommands() {
+        List<SubCommand> subCommands = List.of(
+                new HelpSubCommand(messageManager),
+                new ReloadSubCommand(this, messageManager)
+        );
+
+        WaterFightCommand executor = new WaterFightCommand(messageManager, subCommands);
+        PluginCommand command = getCommand("waterfight");
+        if (command == null) {
+            throw new IllegalStateException("Command 'waterfight' is not defined in plugin.yml.");
+        }
+
+        command.setExecutor(executor);
+        command.setTabCompleter(executor);
+    }
+
+    private void shutdownManagers() {
+        if (joinManager != null) {
+            joinManager.shutdown();
+        }
+        if (gameManager != null) {
+            gameManager.shutdown();
+        }
+        if (levelManager != null) {
+            levelManager.shutdown();
+        }
+        if (arenaManager != null) {
+            arenaManager.shutdown();
+        }
+        if (configManager != null) {
+            configManager.shutdown();
         }
     }
 
-    private void installDefaultConfigs() {
-        for (String fileName : CONFIG_FILES) {
-            File target = new File(getDataFolder(), fileName);
-            if (!target.exists()) {
-                saveResource(fileName, false);
-            }
-        }
+    public ConfigManager configManager() {
+        return configManager;
     }
 
-    /**
-     * Reloads every plugin configuration from disk.
-     */
-    public void reloadAllConfigs() {
-        config = loadConfig(CONFIG_FILE);
-        arenas = loadConfig(ARENAS_FILE);
-        levels = loadConfig(LEVELS_FILE);
-        messages = loadConfig(MESSAGES_FILE);
+    public MessageManager messageManager() {
+        return messageManager;
     }
 
-    private FileConfiguration loadConfig(String fileName) {
-        File file = new File(getDataFolder(), fileName);
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-        applyDefaults(yaml, fileName);
-        return yaml;
+    public ArenaManager arenaManager() {
+        return arenaManager;
     }
 
-    private void applyDefaults(YamlConfiguration target, String fileName) {
-        InputStream stream = getResource(fileName);
-        if (stream == null) {
-            return;
-        }
-
-        try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
-            YamlConfiguration defaults = YamlConfiguration.loadConfiguration(reader);
-            target.setDefaults(defaults);
-            target.options().copyDefaults(true);
-        } catch (IOException exception) {
-            getLogger().log(Level.WARNING, "Could not apply defaults for " + fileName, exception);
-        }
+    public GameManager gameManager() {
+        return gameManager;
     }
 
-    /**
-     * Persists a configuration file to the plugin data folder.
-     *
-     * @param fileName configuration file name
-     * @param configuration configuration to save
-     */
-    public void saveConfig(String fileName, FileConfiguration configuration) {
-        File file = new File(getDataFolder(), fileName);
-        try {
-            configuration.save(file);
-        } catch (IOException exception) {
-            getLogger().log(Level.SEVERE, "Could not save " + fileName, exception);
-        }
+    public JoinManager joinManager() {
+        return joinManager;
     }
 
-    public FileConfiguration getPluginConfig() {
-        return config;
-    }
-
-    public FileConfiguration getArenasConfig() {
-        return arenas;
-    }
-
-    public FileConfiguration getLevelsConfig() {
-        return levels;
-    }
-
-    public FileConfiguration getMessagesConfig() {
-        return messages;
-    }
-
-    public MiniMessage miniMessage() {
-        return miniMessage;
+    public LevelManager levelManager() {
+        return levelManager;
     }
 
     public boolean isPluginReady() {
