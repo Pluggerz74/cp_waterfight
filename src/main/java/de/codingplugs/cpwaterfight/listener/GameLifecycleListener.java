@@ -37,6 +37,8 @@ public final class GameLifecycleListener implements Listener {
         gameManager.getArena(player).ifPresent(arena ->
                 gameManager.getRandomSpawn(arena).ifPresent(event::setRespawnLocation)
         );
+
+        gameManager.handleRespawn(player);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

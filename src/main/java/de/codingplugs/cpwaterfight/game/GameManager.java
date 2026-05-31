@@ -5,10 +5,14 @@ import de.codingplugs.cpwaterfight.config.ConfigManager;
 import de.codingplugs.cpwaterfight.display.JoinDisplayManager;
 import de.codingplugs.cpwaterfight.join.ArenaPlayerCountProvider;
 import de.codingplugs.cpwaterfight.join.JoinManager;
+import de.codingplugs.cpwaterfight.level.LevelDefinition;
+import de.codingplugs.cpwaterfight.level.LevelManager;
 import de.codingplugs.cpwaterfight.message.MessageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -28,12 +32,14 @@ public final class GameManager {
 
     private static final String COUNTDOWN_SECONDS_PATH = "game.countdown-seconds";
     private static final String PREVENT_FALL_DAMAGE_PATH = "game.prevent-fall-damage-before-start";
+    private static final String CLEAR_INVENTORY_ON_STOP_PATH = "game.clear-inventory-on-stop";
     private static final Set<Integer> MILESTONE_SECONDS = Set.of(60, 30, 10);
 
     private final JavaPlugin plugin;
     private final ConfigManager configManager;
     private final MessageManager messages;
     private final JoinDisplayManager joinDisplayManager;
+    private final LevelManager levelManager;
     private ArenaPlayerCountProvider playerCountProvider = arena -> 0;
     private JoinManager joinManager;
 
@@ -43,12 +49,14 @@ public final class GameManager {
             JavaPlugin plugin,
             ConfigManager configManager,
             MessageManager messages,
-            JoinDisplayManager joinDisplayManager
+            JoinDisplayManager joinDisplayManager,
+            LevelManager levelManager
     ) {
         this.plugin = plugin;
         this.configManager = configManager;
         this.messages = messages;
         this.joinDisplayManager = joinDisplayManager;
+        this.levelManager = levelManager;
     }
 
     public void setPlayerCountProvider(ArenaPlayerCountProvider playerCountProvider) {
@@ -156,6 +164,71 @@ public final class GameManager {
         // Respawn location is applied in PlayerRespawnEvent when the player is in-game.
     }
 
+    public void handleRespawn(Player player) {
+        if (player == null || !isInGame(player)) {
+            return;
+        }
+
+        getArena(player).ifPresent(arena ->
+                Bukkit.getScheduler().runTaskLater(plugin, () -> equipPlayer(player, arena), 1L)
+        );
+    }
+
+    public Optional<PlayerProgress> getProgress(Player player) {
+        if (player == null) {
+            return Optional.empty();
+        }
+        return getProgress(player.getUniqueId());
+    }
+
+    public Optional<PlayerProgress> getProgress(UUID playerId) {
+        if (playerId == null) {
+            return Optional.empty();
+        }
+
+        for (GameSession session : sessions.values()) {
+            Optional<PlayerProgress> progress = session.getProgress(playerId);
+            if (progress.isPresent()) {
+                return progress;
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional<PlayerProgress> getProgress(Arena arena, UUID playerId) {
+        if (arena == null || playerId == null) {
+            return Optional.empty();
+        }
+        return getSession(arena).flatMap(session -> session.getProgress(playerId));
+    }
+
+    public void resetProgress(Arena arena) {
+        if (arena == null) {
+            return;
+        }
+
+        GameSession session = getOrCreateSession(arena);
+        session.resetProgress();
+        for (UUID playerId : session.getPlayers()) {
+            session.getOrCreateProgress(playerId).reset();
+        }
+    }
+
+    public void equipPlayer(Player player, Arena arena) {
+        if (player == null || arena == null) {
+            return;
+        }
+
+        PlayerProgress progress = getOrCreateSession(arena).getOrCreateProgress(player.getUniqueId());
+        equipPlayer(player, arena, progress.getLevel());
+    }
+
+    public void equipArenaPlayers(Arena arena) {
+        for (Player player : getOnlinePlayers(arena)) {
+            equipPlayer(player, arena);
+        }
+    }
+
     public GameActionResult forceStart(Arena arena) {
         if (arena == null) {
             return GameActionResult.NOT_RUNNING;
@@ -199,6 +272,10 @@ public final class GameManager {
         cancelCountdown(arena);
         session.setState(GameState.ENDING);
         refreshDisplay(arena);
+
+        if (isClearInventoryOnStopEnabled()) {
+            clearInventories(arena);
+        }
 
         teleportPlayersToLobby(arena);
 
@@ -287,13 +364,48 @@ public final class GameManager {
         }
 
         session.setState(GameState.INGAME);
+        resetProgress(arena);
 
         for (Player player : onlinePlayers) {
             teleportToRandomSpawn(player, arena);
+            PlayerMatchState.prepareForMatch(player);
+            equipPlayer(player, arena, 1);
         }
 
         broadcast(arena, "game.started", placeholders(arena));
         refreshDisplay(arena);
+    }
+
+    private void equipPlayer(Player player, Arena arena, int level) {
+        Optional<LevelDefinition> levelDefinition = levelManager.getLevel(level);
+        if (levelDefinition.isEmpty()) {
+            messages.sendPrefixed(player, "level.missing-config", Map.of("level", String.valueOf(level)));
+            return;
+        }
+
+        List<ItemStack> itemStacks = levelManager.createItemStacks(level);
+        if (itemStacks.isEmpty()) {
+            messages.sendPrefixed(player, "level.missing-config", Map.of("level", String.valueOf(level)));
+            return;
+        }
+
+        clearInventory(player);
+
+        PlayerInventory inventory = player.getInventory();
+        inventory.setItem(0, itemStacks.getFirst().clone());
+
+        for (int index = 1; index < itemStacks.size(); index++) {
+            inventory.addItem(itemStacks.get(index).clone());
+        }
+
+        inventory.setHeldItemSlot(0);
+
+        LevelDefinition definition = levelDefinition.get();
+        messages.sendPrefixed(player, "level.equipped", Map.of(
+                "level", String.valueOf(definition.level()),
+                "kills_required", String.valueOf(definition.killsRequired()),
+                "weapon", stripColor(definition.weapon().displayName())
+        ));
     }
 
     public boolean canStart(Arena arena) {
@@ -427,6 +539,29 @@ public final class GameManager {
         }
 
         session.setCountdownSecondsRemaining(remaining - 1);
+    }
+
+    private void clearInventory(Player player) {
+        if (player != null) {
+            player.getInventory().clear();
+        }
+    }
+
+    private void clearInventories(Arena arena) {
+        for (Player player : getOnlinePlayers(arena)) {
+            clearInventory(player);
+        }
+    }
+
+    private boolean isClearInventoryOnStopEnabled() {
+        return configManager.config().getBoolean(CLEAR_INVENTORY_ON_STOP_PATH, true);
+    }
+
+    private static String stripColor(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.replaceAll("&[0-9a-fk-orA-FK-OR]", "");
     }
 
     private void teleportPlayersToLobby(Arena arena) {

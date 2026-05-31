@@ -73,6 +73,10 @@ game:
   usage-forcestart: "&7Usage: &f/wf forcestart <arena>"
   usage-stop: "&7Usage: &f/wf stop <arena>"
 
+level:
+  equipped: "&aEquipped &f%weapon% &7(Level &f%level%&7, &f%kills_required% &7kills to advance)"
+  missing-config: "&cNo weapon configuration found for level &f%level%&c."
+
 join:
   joined-arena: "&aYou joined &f%arena%&a."
   left-arena: "&7You left &f%arena%&7."

@@ -87,7 +87,9 @@ Water Fight uses a GunGame-style progression: **20 levels**, **2 kills per level
 
 Lore and names support legacy `&` colors and placeholders: `%level%`, `%kills_required%`, `%weapon%`.
 
-`LevelManager` loads definitions and can build `ItemStack` kits from config (giving weapons in-game comes in a later step). Invalid materials or enchantments are logged and skipped safely.
+`LevelManager` loads definitions and can build `ItemStack` kits from config. Invalid materials or enchantments are logged and skipped safely.
+
+When a match starts, every player begins at **level 1** with the level 1 weapon kit from `levels.yml` (inventory cleared, basic vitals reset, main weapon in hotbar slot 0). Kill-based level-ups and win detection are added in later steps.
 
 ## Permissions
 

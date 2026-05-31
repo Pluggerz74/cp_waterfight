@@ -15,6 +15,7 @@ countdown-seconds: 10
 game:
   countdown-seconds: 10
   prevent-fall-damage-before-start: true
+  clear-inventory-on-stop: true
 
 # Whether to broadcast match events to the server
 broadcast-events: true

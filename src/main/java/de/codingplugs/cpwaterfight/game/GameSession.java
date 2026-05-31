@@ -3,8 +3,11 @@ package de.codingplugs.cpwaterfight.game;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -15,6 +18,7 @@ public final class GameSession {
 
     private final String arenaId;
     private final Set<UUID> players = new LinkedHashSet<>();
+    private final Map<UUID, PlayerProgress> progressByPlayer = new HashMap<>();
     private GameState state = GameState.WAITING;
 
     private BukkitTask countdownTask;
@@ -37,6 +41,7 @@ public final class GameSession {
     public void removePlayer(UUID uuid) {
         if (uuid != null) {
             players.remove(uuid);
+            progressByPlayer.remove(uuid);
         }
     }
 
@@ -50,6 +55,22 @@ public final class GameSession {
 
     public int getPlayerCount() {
         return players.size();
+    }
+
+    public Optional<PlayerProgress> getProgress(UUID playerId) {
+        if (playerId == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(progressByPlayer.get(playerId));
+    }
+
+    public PlayerProgress getOrCreateProgress(UUID playerId) {
+        Objects.requireNonNull(playerId, "playerId");
+        return progressByPlayer.computeIfAbsent(playerId, PlayerProgress::new);
+    }
+
+    public void resetProgress() {
+        progressByPlayer.clear();
     }
 
     public GameState getState() {
@@ -92,6 +113,7 @@ public final class GameSession {
     public void reset() {
         resetCountdown();
         players.clear();
+        resetProgress();
         state = GameState.WAITING;
     }
 }
