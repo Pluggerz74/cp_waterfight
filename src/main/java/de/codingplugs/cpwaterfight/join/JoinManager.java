@@ -63,7 +63,7 @@ public final class JoinManager {
         }
 
         playerArenas.entrySet().removeIf(entry -> arenaId.equals(entry.getValue()));
-        gameManager.removeSession(arenaId);
+        arenaManager.getArena(arenaId).ifPresent(gameManager::resetEmptySession);
     }
 
     public boolean join(Player player, Arena arena) {
@@ -81,10 +81,9 @@ public final class JoinManager {
                 return false;
             }
 
-            arenaManager.getArena(currentArenaId.get()).ifPresent(previousArena ->
-                    gameManager.handlePlayerLeave(player, previousArena)
-            );
+            Optional<Arena> previousArena = arenaManager.getArena(currentArenaId.get());
             leave(player, false);
+            previousArena.ifPresent(gameManager::handleArenaEmptyIfNeeded);
         }
 
         if (!gameManager.canJoin(arena)) {
@@ -144,6 +143,7 @@ public final class JoinManager {
             if (notify) {
                 messages.sendPrefixed(player, "join.left-arena", Map.of("arena", arena.displayName()));
             }
+            gameManager.handleArenaEmptyIfNeeded(arena);
             refreshDisplay(arena);
         });
         return true;

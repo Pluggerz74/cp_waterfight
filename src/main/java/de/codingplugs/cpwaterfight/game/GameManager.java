@@ -158,11 +158,50 @@ public final class GameManager {
 
         session.removePlayer(player.getUniqueId());
 
-        if (session.getState() == GameState.COUNTDOWN
+        if (!isSessionEmpty(arena)
+                && session.getState() == GameState.COUNTDOWN
                 && getOnlinePlayers(arena).size() < arena.minPlayers()) {
             cancelCountdown(arena);
             session.setState(GameState.WAITING);
             broadcast(arena, "game.countdown-cancelled", placeholders(arena));
+        }
+
+        refreshDisplay(arena);
+        refreshScoreboards(arena);
+    }
+
+    public boolean isSessionEmpty(Arena arena) {
+        return arena != null && playerCountProvider.getPlayerCount(arena) == 0;
+    }
+
+    public void handleArenaEmptyIfNeeded(Arena arena) {
+        if (!isSessionEmpty(arena)) {
+            return;
+        }
+        resetEmptySession(arena);
+    }
+
+    public void resetEmptySession(Arena arena) {
+        if (arena == null) {
+            return;
+        }
+
+        GameSession session = getSession(arena).orElse(null);
+        if (session == null) {
+            refreshDisplay(arena);
+            return;
+        }
+
+        GameState previousState = session.getState();
+        boolean hadActiveRuntime = previousState != GameState.WAITING
+                || session.isCountdownRunning()
+                || session.isEndingScheduled()
+                || session.isWinResolved();
+
+        session.reset();
+
+        if (hadActiveRuntime) {
+            logEmptyReset(arena);
         }
 
         refreshDisplay(arena);
@@ -685,6 +724,11 @@ public final class GameManager {
             return;
         }
 
+        if (isSessionEmpty(arena)) {
+            resetEmptySession(arena);
+            return;
+        }
+
         if (getOnlinePlayers(arena).size() < arena.minPlayers()) {
             cancelCountdown(arena);
             session.setState(GameState.WAITING);
@@ -835,5 +879,17 @@ public final class GameManager {
 
     private void refreshDisplay(Arena arena) {
         joinDisplayManager.updateArena(arena, playerCountProvider.getPlayerCount(arena));
+    }
+
+    private void logEmptyReset(Arena arena) {
+        String formatted = messages.format("game.empty-reset", Map.of(
+                "arena", arena.displayName(),
+                "id", arena.id()
+        ));
+        if (formatted.isEmpty()) {
+            plugin.getLogger().info("[Water Fight] Arena '" + arena.id() + "' reset because it became empty.");
+        } else {
+            plugin.getLogger().info(formatted);
+        }
     }
 }

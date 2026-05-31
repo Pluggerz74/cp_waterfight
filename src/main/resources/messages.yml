@@ -104,6 +104,7 @@ game:
   stopped: "&7Water Fight on &f%arena% &7was stopped."
   winner: "&6&l%player% &awon Water Fight on &f%arena%&a!"
   ending: "&7Match ending in &f%seconds% &7seconds..."
+  empty-reset: "[Water Fight] Arena '%id%' reset because it became empty."
   usage-forcestart: "&7Usage: &f/wf forcestart <arena>"
   usage-stop: "&7Usage: &f/wf stop <arena>"
 
