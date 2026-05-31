@@ -10,6 +10,7 @@ import de.codingplugs.cpwaterfight.level.LevelDefinition;
 import de.codingplugs.cpwaterfight.level.LevelManager;
 import de.codingplugs.cpwaterfight.message.MessageManager;
 import de.codingplugs.cpwaterfight.spectator.SpectatorManager;
+import de.codingplugs.cpwaterfight.feedback.FeedbackManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -50,6 +51,7 @@ public final class GameManager {
     private JoinManager joinManager;
     private ScoreboardManager scoreboardManager;
     private SpectatorManager spectatorManager;
+    private FeedbackManager feedbackManager;
 
     private final Map<String, GameSession> sessions = new HashMap<>();
 
@@ -83,6 +85,10 @@ public final class GameManager {
 
     public void setSpectatorManager(SpectatorManager spectatorManager) {
         this.spectatorManager = spectatorManager;
+    }
+
+    public void setFeedbackManager(FeedbackManager feedbackManager) {
+        this.feedbackManager = feedbackManager;
     }
 
     public void load() {
@@ -265,6 +271,10 @@ public final class GameManager {
         int killsRequired = levelManager.getKillsRequired(progress.getLevel());
         messages.sendPrefixed(killer, "kill.progress", progressPlaceholders(killer, arena, progress));
 
+        if (feedbackManager != null) {
+            feedbackManager.onKill(killer, arena);
+        }
+
         refreshScoreboards(arena);
 
         if (progress.getKillsOnCurrentLevel() < killsRequired) {
@@ -294,6 +304,9 @@ public final class GameManager {
         progress.resetKillsOnCurrentLevel();
         equipPlayer(player, arena, progress.getLevel());
         messages.sendPrefixed(player, "level.up", progressPlaceholders(player, arena, progress));
+        if (feedbackManager != null) {
+            feedbackManager.onLevelUp(player, arena, progress);
+        }
         refreshScoreboards(arena);
     }
 
@@ -329,6 +342,10 @@ public final class GameManager {
         );
         session.setEndingTask(endingTask);
         refreshScoreboards(arena);
+
+        if (feedbackManager != null) {
+            feedbackManager.onWin(winner, arena);
+        }
     }
 
     public List<RankedProgressEntry> getRankedProgress(Arena arena) {
@@ -569,6 +586,9 @@ public final class GameManager {
         }
 
         broadcast(arena, "game.started", placeholders(arena));
+        if (feedbackManager != null) {
+            feedbackManager.onGameStart(arena);
+        }
         refreshDisplay(arena);
         refreshScoreboards(arena);
     }
@@ -754,6 +774,9 @@ public final class GameManager {
 
         if (shouldBroadcastTick(remaining)) {
             broadcast(arena, "game.countdown-tick", placeholders(arena, remaining));
+            if (feedbackManager != null) {
+                feedbackManager.onCountdownTick(arena, remaining);
+            }
         }
 
         session.setCountdownSecondsRemaining(remaining - 1);

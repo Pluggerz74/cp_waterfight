@@ -7,6 +7,7 @@ import de.codingplugs.cpwaterfight.game.GameManager;
 import de.codingplugs.cpwaterfight.message.MessageManager;
 import de.codingplugs.cpwaterfight.scoreboard.ScoreboardManager;
 import de.codingplugs.cpwaterfight.spectator.SpectatorManager;
+import de.codingplugs.cpwaterfight.feedback.FeedbackManager;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -27,6 +28,7 @@ public final class JoinManager {
     private final ScoreboardManager scoreboardManager;
 
     private SpectatorManager spectatorManager;
+    private FeedbackManager feedbackManager;
 
     private final Map<UUID, String> playerArenas = new HashMap<>();
 
@@ -46,6 +48,10 @@ public final class JoinManager {
 
     public void setSpectatorManager(SpectatorManager spectatorManager) {
         this.spectatorManager = spectatorManager;
+    }
+
+    public void setFeedbackManager(FeedbackManager feedbackManager) {
+        this.feedbackManager = feedbackManager;
     }
 
     public void load() {
@@ -119,6 +125,9 @@ public final class JoinManager {
         if (scoreboardManager != null) {
             scoreboardManager.show(player);
         }
+        if (feedbackManager != null) {
+            feedbackManager.onJoin(player);
+        }
         return true;
     }
 
@@ -129,6 +138,10 @@ public final class JoinManager {
     public boolean leave(Player player, boolean notify) {
         if (player == null) {
             return false;
+        }
+
+        if (feedbackManager != null && playerArenas.containsKey(player.getUniqueId())) {
+            feedbackManager.onLeave(player);
         }
 
         String arenaId = playerArenas.remove(player.getUniqueId());

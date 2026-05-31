@@ -137,6 +137,24 @@ While a player is in an arena queue or match, a per-player sidebar can show map,
 
 Configurable `scoreboard.title` and `scoreboard.lines` use legacy `&` colors and placeholders (`%map%`, `%rank%`, `%level%`, `%weapon%`, `%kills%`, top player slots, etc.).
 
+## Feedback (`config.yml` → `feedback`)
+
+Optional sounds, titles, and actionbar messages make match events feel more responsive. Toggle everything with `feedback.enabled`.
+
+| Section | Purpose |
+|---------|---------|
+| `feedback.sounds.*` | Per-event sound effects (`join`, `leave`, `countdown`, `start`, `kill`, `level-up`, `win`) |
+| `feedback.titles.*` | Full-screen titles for countdown ticks, match start, level-up, and win |
+| `feedback.actionbar` | Repeating actionbar text during countdown and active matches |
+
+Each sound entry supports `enabled`, `sound` (Bukkit `Sound` enum name), `volume`, and `pitch`. Invalid sound names are logged as warnings and skipped safely.
+
+Title entries support `title`, `subtitle`, and timing in ticks (`fade-in`, `stay`, `fade-out`). Actionbar templates use legacy `&` colors.
+
+Useful placeholders: `%player%`, `%winner%`, `%arena%`, `%map%`, `%seconds%`, `%level%`, `%max_level%`, `%weapon%`, `%kills%`, `%kills_required%`, `%total_kills%`.
+
+Countdown sounds and titles follow the same tick schedule as chat countdown messages (last 5 seconds and milestone seconds). The actionbar updates on its own interval (`update-interval-ticks`, default `20`) and does not replace the sidebar scoreboard.
+
 ## Permissions
 
 | Permission | Default | Description |
@@ -162,6 +180,7 @@ cp_waterfight/
     │   ├── diagnostics/    # ArenaDebugReporter
     │   ├── level/
     │   ├── scoreboard/
+    │   ├── feedback/
     │   ├── game/
     │   ├── arena/
     │   └── ...

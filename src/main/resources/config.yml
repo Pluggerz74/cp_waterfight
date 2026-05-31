@@ -30,6 +30,83 @@ spectator:
   teleport-to-killer: false
   send-title: true
 
+# Sounds, titles, and actionbar feedback
+feedback:
+  enabled: true
+
+  sounds:
+    join:
+      enabled: true
+      sound: "ENTITY_PLAYER_LEVELUP"
+      volume: 0.6
+      pitch: 1.4
+    leave:
+      enabled: true
+      sound: "BLOCK_NOTE_BLOCK_BASS"
+      volume: 0.5
+      pitch: 0.8
+    countdown:
+      enabled: true
+      sound: "BLOCK_NOTE_BLOCK_PLING"
+      volume: 0.7
+      pitch: 1.0
+    start:
+      enabled: true
+      sound: "ENTITY_ENDER_DRAGON_GROWL"
+      volume: 0.6
+      pitch: 1.2
+    kill:
+      enabled: true
+      sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+      volume: 0.7
+      pitch: 1.5
+    level-up:
+      enabled: true
+      sound: "UI_TOAST_CHALLENGE_COMPLETE"
+      volume: 0.8
+      pitch: 1.0
+    win:
+      enabled: true
+      sound: "UI_TOAST_CHALLENGE_COMPLETE"
+      volume: 1.0
+      pitch: 1.0
+
+  titles:
+    countdown:
+      enabled: true
+      title: "&b%seconds%"
+      subtitle: "&7Water Fight startet gleich"
+      fade-in: 0
+      stay: 20
+      fade-out: 5
+    start:
+      enabled: true
+      title: "&b&lWater Fight"
+      subtitle: "&fLos geht's!"
+      fade-in: 5
+      stay: 40
+      fade-out: 10
+    level-up:
+      enabled: true
+      title: "&a&lLevel Up!"
+      subtitle: "&7Neue Waffe: &e%weapon%"
+      fade-in: 5
+      stay: 35
+      fade-out: 10
+    win:
+      enabled: true
+      title: "&6&l%winner%"
+      subtitle: "&fhat Water Fight gewonnen!"
+      fade-in: 10
+      stay: 60
+      fade-out: 20
+
+  actionbar:
+    enabled: true
+    during-game: "&bLevel %level%/%max_level% &8┃ &f%weapon% &8┃ &a%kills%/%kills_required% Kills"
+    during-countdown: "&7Startet in &b%seconds%s"
+    update-interval-ticks: 20
+
 # Arena protections while players are joined
 protection:
   message-cooldown-millis: 1500
