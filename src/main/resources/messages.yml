@@ -55,6 +55,15 @@ arena:
     addspawn: "&7Usage: &f/wf addspawn <arena>"
     info: "&7Usage: &f/wf info <arena>"
 
+game:
+  countdown-started: "&aWater Fight starts in &f%seconds% &aseconds! &7(&f%players%&7/&f%min_players%&7)"
+  countdown-cancelled: "&cCountdown cancelled. Not enough players in &f%arena%&c."
+  countdown-tick: "&eStarting in &f%seconds% &esecond(s)..."
+  started: "&aWater Fight has started on &f%arena%&a!"
+  join-denied-running: "&c%arena% is already running. You cannot join right now."
+  missing-spawns: "&cCannot start &f%arena%&c: no spawn points configured."
+  not-enough-players: "&cNot enough players to start on &f%arena%&c."
+
 join:
   joined-arena: "&aYou joined &f%arena%&a."
   left-arena: "&7You left &f%arena%&7."

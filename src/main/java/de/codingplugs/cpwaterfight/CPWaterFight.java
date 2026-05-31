@@ -98,9 +98,6 @@ public final class CPWaterFight extends JavaPlugin {
             arenaManager = new ArenaManager(configManager, getLogger());
             arenaManager.load();
 
-            gameManager = new GameManager();
-            gameManager.load();
-
             gameStateLabels = new GameStateLabels(configManager);
             gameStateLabels.load();
 
@@ -108,10 +105,17 @@ public final class CPWaterFight extends JavaPlugin {
                     configManager,
                     messageManager,
                     arenaManager,
-                    gameManager,
+                    null,
                     gameStateLabels
             );
+
+            gameManager = new GameManager(this, configManager, messageManager, joinDisplayManager);
+            gameManager.load();
+
+            joinDisplayManager.attachGameManager(gameManager);
+
             joinManager = new JoinManager(messageManager, arenaManager, joinDisplayManager, gameManager);
+            gameManager.setPlayerCountProvider(joinManager::getPlayerCount);
             joinManager.load();
             joinDisplayManager.load();
 

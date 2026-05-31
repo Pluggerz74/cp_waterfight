@@ -34,7 +34,7 @@ public final class JoinManager {
         this.messages = messages;
         this.arenaManager = arenaManager;
         this.joinDisplayManager = joinDisplayManager;
-        this.gameManager = gameManager;
+        this.gameManager = java.util.Objects.requireNonNull(gameManager, "gameManager");
     }
 
     public void load() {
@@ -81,6 +81,11 @@ public final class JoinManager {
                     gameManager.handlePlayerLeave(player, previousArena)
             );
             leave(player, false);
+        }
+
+        if (!gameManager.canJoin(arena)) {
+            messages.sendPrefixed(player, "game.join-denied-running", Map.of("arena", arena.displayName()));
+            return false;
         }
 
         if (!arena.hasLobby()) {

@@ -8,8 +8,12 @@ min-players: 2
 # Maximum players per arena
 max-players: 16
 
-# Countdown duration in seconds before a match starts
+# Countdown duration in seconds before a match starts (legacy fallback)
 countdown-seconds: 10
+
+# Game flow settings
+game:
+  countdown-seconds: 10
 
 # Whether to broadcast match events to the server
 broadcast-events: true

@@ -5,6 +5,7 @@ import de.codingplugs.cpwaterfight.arena.Arena;
 import de.codingplugs.cpwaterfight.arena.ArenaManager;
 import de.codingplugs.cpwaterfight.config.ConfigManager;
 import de.codingplugs.cpwaterfight.game.GameManager;
+import de.codingplugs.cpwaterfight.game.GameState;
 import de.codingplugs.cpwaterfight.game.GameStateLabels;
 import de.codingplugs.cpwaterfight.message.MessageManager;
 import net.kyori.adventure.text.Component;
@@ -30,7 +31,7 @@ public final class JoinDisplayManager {
     private final ConfigManager configManager;
     private final MessageManager messageManager;
     private final ArenaManager arenaManager;
-    private final GameManager gameManager;
+    private GameManager gameManager;
     private final GameStateLabels stateLabels;
 
     private final Map<String, UUID> displayIds = new HashMap<>();
@@ -47,6 +48,10 @@ public final class JoinDisplayManager {
         this.arenaManager = arenaManager;
         this.gameManager = gameManager;
         this.stateLabels = stateLabels;
+    }
+
+    public void attachGameManager(GameManager gameManager) {
+        this.gameManager = gameManager;
     }
 
     public void load() {
@@ -195,7 +200,9 @@ public final class JoinDisplayManager {
                 .replace("%max_players%", String.valueOf(arena.maxPlayers()))
                 .replace("%map%", arena.displayName())
                 .replace("%game%", CPWaterFight.GAME_MODE_NAME)
-                .replace("%state%", stateLabels.label(gameManager.getArenaState(arena)));
+                .replace("%state%", stateLabels.label(
+                        gameManager != null ? gameManager.getArenaState(arena) : GameState.WAITING
+                ));
     }
 
     private boolean isEnabled() {
