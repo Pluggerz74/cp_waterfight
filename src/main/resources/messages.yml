@@ -1,0 +1,14 @@
+prefix: "<#5DADE2><bold>Water Fight</bold></#5DADE2> <gray>»</gray> "
+
+general:
+  plugin-enabled: "<green>Water Fight</green> <gray>has been enabled.</gray>"
+  plugin-disabled: "<yellow>Water Fight</yellow> <gray>has been disabled.</gray>"
+  reload-success: "<green>Configuration reloaded successfully.</green>"
+  reload-failure: "<red>Failed to reload configuration. Check the console.</red>"
+  no-permission: "<red>You do not have permission to do that.</red>"
+  player-only: "<red>This command can only be used by players.</red>"
+
+help:
+  header: "<#5DADE2><bold>Water Fight</bold></#5DADE2> <gray>— Commands</gray>"
+  line: "<gray>  <white>/{command} {usage}</white> <dark_gray>— {description}</dark_gray>"
+  footer: "<dark_gray>Use /wf help for this list.</dark_gray>"

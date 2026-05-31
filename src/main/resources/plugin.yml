@@ -1,0 +1,26 @@
+name: cp_waterfight
+version: '${project.version}'
+main: de.codingplugs.cpwaterfight.CPWaterFight
+api-version: '1.21'
+description: Premium Water Fight minigame for Paper
+authors:
+  - CodingPlugs
+
+commands:
+  waterfight:
+    description: Main command for Water Fight
+    aliases:
+      - wf
+    usage: /<command> help
+    permission: cpwaterfight.use
+
+permissions:
+  cpwaterfight.use:
+    description: Allows use of Water Fight commands
+    default: true
+  cpwaterfight.join:
+    description: Allows joining a Water Fight arena
+    default: true
+  cpwaterfight.admin:
+    description: Allows administrative Water Fight commands
+    default: op

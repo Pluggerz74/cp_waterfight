@@ -1,0 +1,18 @@
+# cp_waterfight — main configuration
+# Game mode display name (do not change unless rebranding)
+game-mode-name: "Water Fight"
+
+# Minimum players required to start a match
+min-players: 2
+
+# Maximum players per arena
+max-players: 16
+
+# Countdown duration in seconds before a match starts
+countdown-seconds: 10
+
+# Whether to broadcast match events to the server
+broadcast-events: true
+
+# Debug logging (disable in production)
+debug: false

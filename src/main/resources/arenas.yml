@@ -1,0 +1,14 @@
+# cp_waterfight — arena definitions
+# Arenas will be configured in a later development step.
+#
+# Example structure (not active until arena setup is implemented):
+#
+# arenas:
+#   example:
+#     display-name: "Example Arena"
+#     world: world
+#     enabled: true
+#     spawn: {}
+#     bounds: {}
+
+arenas: {}

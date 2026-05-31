@@ -1,0 +1,11 @@
+# cp_waterfight — level progression (GunGame-style weapons per level)
+# Levels will be fully configured in a later development step.
+#
+# Example structure:
+#
+# levels:
+#   1:
+#     weapon: DIAMOND_SWORD
+#     kills-required: 1
+
+levels: {}
