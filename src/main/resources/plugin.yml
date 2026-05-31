@@ -2,14 +2,13 @@ name: cp_waterfight
 version: '${project.version}'
 main: de.codingplugs.cpwaterfight.CPWaterFight
 api-version: '1.21'
-description: Premium Water Fight minigame for Paper 1.21.x (Java 21)
+description: Water Fight minigame for Paper 1.21.x
 authors:
   - CodingPlugs
 
-# Root command: /waterfight and alias /wf (subcommands handled in-plugin)
 commands:
   waterfight:
-    description: Water Fight minigame — use /wf help
+    description: Water Fight minigame commands
     aliases:
       - wf
     usage: /<command> help
@@ -17,11 +16,11 @@ commands:
 
 permissions:
   cpwaterfight.use:
-    description: Use /wf help, version, and base command access
+    description: Access /wf help and /wf version
     default: true
   cpwaterfight.join:
-    description: Join and leave Water Fight arenas (/wf join, /wf leave, join blocks)
+    description: Join and leave Water Fight arenas
     default: true
   cpwaterfight.admin:
-    description: Arena setup, reload, forcestart, stop, validate, debug, and other admin subcommands
+    description: Arena setup, reload, and match administration
     default: op

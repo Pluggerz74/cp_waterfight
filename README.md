@@ -2,29 +2,35 @@
 
 Premium **Water Fight** minigame plugin for [Paper](https://papermc.io/) servers — a GunGame-style free-for-all where players level up by eliminating opponents and race to complete the final level.
 
+| | |
+|---|---|
+| **Version** | 1.0.0 |
+| **Target** | Paper 1.21.x |
+| **Java** | 21 |
+
 Built for **WorldOfCommunity** as an independent, production-grade minigame plugin.
 
-## Target stack
+## Main features
 
-| Component | Version |
-|-----------|---------|
-| Minecraft (Paper) | 1.21.x |
-| Java | 21 |
-| Build | Maven |
-
-## Game mode
-
-The public game mode name is **Water Fight**. Players join an arena, receive weapons based on their current level, advance by scoring kills, and the first player to finish the final level wins.
+- **Arena setup** — create, configure, validate, and debug arenas via commands
+- **Join block & TextDisplay** — physical join blocks with floating status text
+- **Match flow** — waiting lobby, countdown, in-game, and ending phases
+- **20-level progression** — configurable weapons and kills per level in `levels.yml`
+- **Kill tracking** — level-up, win detection, and ranked sidebar scoreboard
+- **Protection** — inventory, block, command, and durability safeguards
+- **Spectator respawn** — brief post-death phase before re-equip
+- **Feedback** — configurable sounds, titles, and actionbar messages
+- **Operations** — empty-arena auto-reset, death drop cleanup, throttled protection messages
 
 ## Build
 
-Requirements: **JDK 21** only. Maven is provided by the project wrapper (3.9.9) — no global Maven install needed.
+Requirements: **JDK 21**. Maven is provided by the project wrapper — no global Maven install needed.
 
 **Windows:**
 
 ```bat
 cd cp_waterfight
-mvnw.cmd clean package
+.\mvnw.cmd clean package
 ```
 
 **Linux / macOS:**
@@ -34,19 +40,24 @@ cd cp_waterfight
 ./mvnw clean package
 ```
 
-If you have Maven installed globally, `mvn clean package` works as well.
-
-### Release JAR
-
-The build writes a versioned artifact to:
+### Output JAR
 
 ```
-cp_waterfight/target/cp_waterfight-1.0.0-SNAPSHOT.jar
+target/cp_waterfight-1.0.0.jar
 ```
 
-Pattern: `cp_waterfight-<version>.jar` (see `version` in `pom.xml`).
+Copy the JAR into your server's `plugins/` folder and restart. Use `/wf reload` to reload configuration when no matches are active.
 
-Copy the JAR into your server's `plugins/` folder and restart (or reload configuration with `/wf reload` when appropriate).
+## Setup order
+
+1. `/wf create <arena>`
+2. `/wf setlobby <arena>`
+3. `/wf setjoin <arena>`
+4. `/wf addspawn <arena>` (repeat for more spawns)
+5. `/wf setmin <arena> <amount>`
+6. `/wf setmax <arena> <amount>`
+7. `/wf validate <arena>`
+8. `/wf debug <arena>` — optional live state check before going live
 
 ## Configuration
 
@@ -54,12 +65,14 @@ On first run, the plugin creates these files in `plugins/cp_waterfight/`:
 
 | File | Purpose |
 |------|---------|
-| `config.yml` | General plugin settings |
+| `config.yml` | Game flow, protection, scoreboard, spectator, feedback |
 | `arenas.yml` | Arena definitions |
-| `levels.yml` | GunGame level and weapon progression (20 levels) |
+| `levels.yml` | Level and weapon progression (20 levels) |
 | `messages.yml` | Player-facing messages (legacy `&` colors) |
 
 Startup and `/wf reload` run a **configuration sanity check** — warnings are logged to the console; the plugin stays enabled unless initialization fails fatally.
+
+See [CHANGELOG.md](CHANGELOG.md) and [RELEASE_NOTES.md](RELEASE_NOTES.md) for v1.0.0 details.
 
 ## Commands
 
@@ -85,105 +98,62 @@ Startup and `/wf reload` run a **configuration sanity check** — warnings are l
 | `/wf debug <arena>` | `cpwaterfight.admin` | Live diagnostics (read-only) |
 | `/wf forcestart <arena>` | `cpwaterfight.admin` | Force-start a match |
 | `/wf stop <arena>` | `cpwaterfight.admin` | Stop countdown or match |
-| `/waterfight` | — | Alias root for `/wf` |
+| `/waterfight` | — | Alias for `/wf` |
 
 Running `/wf` or `/waterfight` without arguments shows help.
 
-### Recommended arena setup order
-
-1. `/wf create <arena>`
-2. `/wf setlobby <arena>`
-3. `/wf setjoin <arena>`
-4. `/wf addspawn <arena>` (repeat for more spawns)
-5. `/wf setmin <arena> <amount>`
-6. `/wf setmax <arena> <amount>`
-7. `/wf validate <arena>`
-8. `/wf debug <arena>` — optional live state check before going live
-
-### Quick test checklist
+## Test checklist
 
 After setup, verify on a test server:
 
-- [ ] Join block opens the arena (`/wf join` or right-click join block)
+- [ ] Join block and `/wf join` add players to the arena
 - [ ] TextDisplay above join block updates player count and state
 - [ ] Countdown starts when enough players are in the lobby
-- [ ] `/wf forcestart <arena>` starts a match with kits
+- [ ] `/wf forcestart <arena>` starts a match with level 1 kits
 - [ ] Kills advance level and re-equip weapons
-- [ ] First player to finish the final level wins and the match ends cleanly
-- [ ] Sidebar scoreboard updates during the match
-- [ ] `/wf leave` clears scoreboard (and inventory if configured)
+- [ ] First player to finish the final level wins; match ends cleanly
+- [ ] Sidebar scoreboard updates during queue and match
+- [ ] Spectator phase after death, then respawn with current weapon
+- [ ] Sounds, titles, and actionbar feedback on key events
 - [ ] Protections block drops, block break, and griefing while joined
+- [ ] `/wf leave` clears scoreboard (and inventory if configured)
+- [ ] Empty arena resets when the last player leaves
+- [ ] `/wf version` reports **1.0.0**
 
-## Level and weapon progression (`levels.yml`)
+## Level progression (`levels.yml`)
 
-Water Fight uses a GunGame-style progression: **20 levels**, **2 kills per level** (40 kills total to win). The game mode name is *Water Fight* only — weapons are normal, fair combat gear (not water-themed).
-
-`levels.yml` structure:
+Water Fight uses GunGame-style progression: **20 levels**, **2 kills per level** (40 kills total to win). The game mode name is *Water Fight* only — weapons are normal, fair combat gear (not water-themed).
 
 - `settings.max-level` — highest level (default `20`)
 - `settings.default-kills-required` — kills to advance when a level omits its own value (default `2`)
-- `levels.<n>.kills-required` — kills needed to reach the next level
-- `levels.<n>.weapon` — primary item: `material`, `name`, `amount`, `unbreakable`, `lore`, `enchantments`, `extra-items`
+- `levels.<n>.weapon` — primary item: `material`, `name`, `enchantments`, `extra-items`, etc.
 
-Lore and names support legacy `&` colors and placeholders: `%level%`, `%kills_required%`, `%weapon%`.
+## Scoreboard & feedback
 
-When a match starts, every player begins at **level 1** with the level 1 weapon kit from `levels.yml` (inventory cleared, basic vitals reset, main weapon in hotbar slot 0).
+- **Scoreboard** (`config.yml` → `scoreboard`) — sidebar with map, rank, level, weapon, kills, and top 3
+- **Feedback** (`config.yml` → `feedback`) — sounds, titles, and actionbar for join, countdown, kills, level-up, and win
 
-During a match, valid PvP kills in the same arena advance progression. Reaching the final level requirement triggers a winner broadcast and a short ending phase before players return to the lobby.
-
-## Sidebar scoreboard (`config.yml` → `scoreboard`)
-
-While a player is in an arena queue or match, a per-player sidebar can show map, rank, level, weapon, kill progress, and the top 3 players. Toggle with `scoreboard.enabled` and set `update-interval-ticks` (default `20`).
-
-Configurable `scoreboard.title` and `scoreboard.lines` use legacy `&` colors and placeholders (`%map%`, `%rank%`, `%level%`, `%weapon%`, `%kills%`, top player slots, etc.).
-
-## Feedback (`config.yml` → `feedback`)
-
-Optional sounds, titles, and actionbar messages make match events feel more responsive. Toggle everything with `feedback.enabled`.
-
-| Section | Purpose |
-|---------|---------|
-| `feedback.sounds.*` | Per-event sound effects (`join`, `leave`, `countdown`, `start`, `kill`, `level-up`, `win`) |
-| `feedback.titles.*` | Full-screen titles for countdown ticks, match start, level-up, and win |
-| `feedback.actionbar` | Repeating actionbar text during countdown and active matches |
-
-Each sound entry supports `enabled`, `sound` (Bukkit `Sound` enum name), `volume`, and `pitch`. Invalid sound names are logged as warnings and skipped safely.
-
-Title entries support `title`, `subtitle`, and timing in ticks (`fade-in`, `stay`, `fade-out`). Actionbar templates use legacy `&` colors.
-
-Useful placeholders: `%player%`, `%winner%`, `%arena%`, `%map%`, `%seconds%`, `%level%`, `%max_level%`, `%weapon%`, `%kills%`, `%kills_required%`, `%total_kills%`.
-
-Countdown sounds and titles follow the same tick schedule as chat countdown messages (last 5 seconds and milestone seconds). The actionbar updates on its own interval (`update-interval-ticks`, default `20`) and does not replace the sidebar scoreboard.
+Both use legacy `&` colors and `%placeholder%` tokens. See config comments for available placeholders.
 
 ## Permissions
 
 | Permission | Default | Description |
 |------------|---------|-------------|
-| `cpwaterfight.use` | `true` | Use `/wf help`, `/wf version`, and base command access |
+| `cpwaterfight.use` | `true` | Use `/wf help` and `/wf version` |
 | `cpwaterfight.join` | `true` | Join and leave Water Fight arenas |
-| `cpwaterfight.admin` | `op` | Setup, reload, match control, validate, debug |
+| `cpwaterfight.admin` | `op` | Arena setup, reload, match control, validate, debug |
 
 ## Project layout
 
 ```
 cp_waterfight/
-├── mvnw
-├── mvnw.cmd
+├── CHANGELOG.md
+├── RELEASE_NOTES.md
+├── mvnw / mvnw.cmd
 ├── pom.xml
 ├── README.md
-├── .mvn/wrapper/
-│   └── maven-wrapper.properties
 └── src/main/
     ├── java/de/codingplugs/cpwaterfight/
-    │   ├── CPWaterFight.java
-    │   ├── config/         # ConfigManager, ConfigSanityChecker
-    │   ├── diagnostics/    # ArenaDebugReporter
-    │   ├── level/
-    │   ├── scoreboard/
-    │   ├── feedback/
-    │   ├── game/
-    │   ├── arena/
-    │   └── ...
     └── resources/
         ├── plugin.yml
         ├── config.yml

@@ -1,4 +1,5 @@
-# cp_waterfight — main configuration
+# cp_waterfight v1.0.0 — main configuration
+# Reload with /wf reload. See README.md for setup and options.
 # Game mode display name (do not change unless rebranding)
 game-mode-name: "Water Fight"
 
@@ -107,7 +108,7 @@ feedback:
     during-countdown: "&7Startet in &b%seconds%s"
     update-interval-ticks: 20
 
-# Arena protections while players are joined
+# Arena protections while players are joined (message-cooldown reduces chat spam)
 protection:
   message-cooldown-millis: 1500
   block-item-drop: true
