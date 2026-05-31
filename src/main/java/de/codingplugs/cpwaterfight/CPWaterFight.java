@@ -13,7 +13,12 @@ import de.codingplugs.cpwaterfight.command.arena.DeleteArenaSubCommand;
 import de.codingplugs.cpwaterfight.command.arena.ForceStartSubCommand;
 import de.codingplugs.cpwaterfight.command.arena.SetJoinSubCommand;
 import de.codingplugs.cpwaterfight.command.arena.SetLobbySubCommand;
+import de.codingplugs.cpwaterfight.command.arena.RenameArenaSubCommand;
+import de.codingplugs.cpwaterfight.command.arena.SetMaxSubCommand;
+import de.codingplugs.cpwaterfight.command.arena.SetMinSubCommand;
 import de.codingplugs.cpwaterfight.command.arena.StopGameSubCommand;
+import de.codingplugs.cpwaterfight.command.arena.TpArenaSubCommand;
+import de.codingplugs.cpwaterfight.command.arena.ValidateArenaSubCommand;
 import de.codingplugs.cpwaterfight.command.join.JoinArenaSubCommand;
 import de.codingplugs.cpwaterfight.command.join.LeaveSubCommand;
 import de.codingplugs.cpwaterfight.config.ConfigManager;
@@ -178,7 +183,12 @@ public final class CPWaterFight extends JavaPlugin {
                 new ArenaInfoSubCommand(messageManager, arenaManager),
                 new ArenaListSubCommand(messageManager, arenaManager),
                 new ForceStartSubCommand(messageManager, arenaManager, gameManager),
-                new StopGameSubCommand(messageManager, arenaManager, gameManager)
+                new StopGameSubCommand(messageManager, arenaManager, gameManager),
+                new TpArenaSubCommand(messageManager, arenaManager),
+                new SetMinSubCommand(messageManager, arenaManager, joinManager, joinDisplayManager),
+                new SetMaxSubCommand(messageManager, arenaManager, joinManager, joinDisplayManager),
+                new RenameArenaSubCommand(messageManager, arenaManager, joinManager, joinDisplayManager),
+                new ValidateArenaSubCommand(messageManager, arenaManager)
         );
 
         WaterFightCommand executor = new WaterFightCommand(messageManager, subCommands);

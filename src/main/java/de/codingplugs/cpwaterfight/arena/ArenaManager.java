@@ -3,7 +3,9 @@ package de.codingplugs.cpwaterfight.arena;
 import de.codingplugs.cpwaterfight.config.ConfigManager;
 import de.codingplugs.cpwaterfight.game.GameState;
 import de.codingplugs.cpwaterfight.util.LocationSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -136,6 +138,79 @@ public final class ArenaManager {
         return mutateArena(id, arena -> arena.addSpawn(location));
     }
 
+    public ArenaCapacityResult setMinPlayers(String id, int minPlayers) {
+        Optional<Arena> arenaOptional = getArena(id);
+        if (arenaOptional.isEmpty()) {
+            return ArenaCapacityResult.ARENA_NOT_FOUND;
+        }
+
+        int clamped = Math.max(1, minPlayers);
+        Arena arena = arenaOptional.get();
+        if (clamped > arena.maxPlayers()) {
+            return ArenaCapacityResult.MIN_GREATER_THAN_MAX;
+        }
+
+        arena.setMinPlayers(clamped);
+        save();
+        return ArenaCapacityResult.SUCCESS;
+    }
+
+    public ArenaCapacityResult setMaxPlayers(String id, int maxPlayers) {
+        Optional<Arena> arenaOptional = getArena(id);
+        if (arenaOptional.isEmpty()) {
+            return ArenaCapacityResult.ARENA_NOT_FOUND;
+        }
+
+        int clamped = Math.max(1, maxPlayers);
+        Arena arena = arenaOptional.get();
+        if (clamped < arena.minPlayers()) {
+            return ArenaCapacityResult.MAX_LESS_THAN_MIN;
+        }
+
+        arena.setMaxPlayers(clamped);
+        save();
+        return ArenaCapacityResult.SUCCESS;
+    }
+
+    public boolean renameArena(String id, String displayName) {
+        if (displayName == null || displayName.isBlank()) {
+            return false;
+        }
+
+        Optional<Arena> arenaOptional = getArena(id);
+        if (arenaOptional.isEmpty()) {
+            return false;
+        }
+
+        arenaOptional.get().setDisplayName(displayName.trim());
+        save();
+        return true;
+    }
+
+    public ArenaValidationResult validateArena(Arena arena) {
+        if (arena == null) {
+            return new ArenaValidationResult(false, List.of(
+                    new ArenaValidationEntry("Arena exists", false)
+            ));
+        }
+
+        List<ArenaValidationEntry> entries = new ArrayList<>();
+        entries.add(new ArenaValidationEntry("Arena exists", true));
+        entries.add(new ArenaValidationEntry("Lobby configured", arena.hasLobby()));
+        entries.add(new ArenaValidationEntry("Join block configured", arena.hasJoinBlock()));
+        entries.add(new ArenaValidationEntry("At least one spawn", arena.spawnCount() >= 1));
+        entries.add(new ArenaValidationEntry("Minimum players >= 1", arena.minPlayers() >= 1));
+        entries.add(new ArenaValidationEntry("Maximum players > 0", arena.maxPlayers() > 0));
+        entries.add(new ArenaValidationEntry("Capacity valid (max >= min)", arena.maxPlayers() >= arena.minPlayers()));
+        entries.add(new ArenaValidationEntry("World reference valid", isWorldReferenceValid(arena)));
+        entries.add(new ArenaValidationEntry("Lobby world loaded", isLobbyWorldValid(arena)));
+        entries.add(new ArenaValidationEntry("Join block world loaded", isJoinBlockWorldValid(arena)));
+        entries.add(new ArenaValidationEntry("Spawn worlds loaded", areSpawnWorldsValid(arena)));
+
+        boolean ready = entries.stream().allMatch(ArenaValidationEntry::valid);
+        return new ArenaValidationResult(ready, entries);
+    }
+
     public Optional<Arena> findByJoinBlock(Location blockLocation) {
         if (blockLocation == null) {
             return Optional.empty();
@@ -232,6 +307,47 @@ public final class ArenaManager {
             spawnMaps.add(LocationSerializer.toMap(spawn, true));
         }
         section.set("spawns", spawnMaps.isEmpty() ? null : spawnMaps);
+    }
+
+    private static boolean isWorldReferenceValid(Arena arena) {
+        String worldName = arena.worldName();
+        if (worldName == null || worldName.isBlank()) {
+            return arena.hasLobby() || arena.hasJoinBlock() || arena.spawnCount() > 0;
+        }
+        return Bukkit.getWorld(worldName) != null;
+    }
+
+    private static boolean isLobbyWorldValid(Arena arena) {
+        if (!arena.hasLobby()) {
+            return false;
+        }
+        Location lobby = arena.lobby();
+        return lobby != null && lobby.getWorld() != null;
+    }
+
+    private static boolean isJoinBlockWorldValid(Arena arena) {
+        if (!arena.hasJoinBlock()) {
+            return false;
+        }
+        Location joinBlock = arena.joinBlock();
+        return joinBlock != null && joinBlock.getWorld() != null;
+    }
+
+    private static boolean areSpawnWorldsValid(Arena arena) {
+        if (arena.spawnCount() == 0) {
+            return false;
+        }
+
+        for (Location spawn : arena.spawns()) {
+            if (spawn == null || spawn.getWorld() == null) {
+                return false;
+            }
+            World world = spawn.getWorld();
+            if (Bukkit.getWorld(world.getUID()) == null && Bukkit.getWorld(world.getName()) == null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private String normalizeId(String id) {

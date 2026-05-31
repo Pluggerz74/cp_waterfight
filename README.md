@@ -70,9 +70,27 @@ On first run, the plugin creates these files in `plugins/cp_waterfight/`:
 | `/wf addspawn <arena>` | `cpwaterfight.admin` | Add spawn at your location (player) |
 | `/wf info <arena>` | `cpwaterfight.admin` | Show arena details |
 | `/wf list` | `cpwaterfight.admin` | List all arena ids |
+| `/wf tp <arena>` | `cpwaterfight.admin` | Teleport to arena lobby (player) |
+| `/wf setmin <arena> <n>` | `cpwaterfight.admin` | Set minimum players (saved to `arenas.yml`) |
+| `/wf setmax <arena> <n>` | `cpwaterfight.admin` | Set maximum players (must be ≥ minimum) |
+| `/wf rename <arena> <name>` | `cpwaterfight.admin` | Set display name (spaces allowed; updates join display & scoreboard map) |
+| `/wf validate <arena>` | `cpwaterfight.admin` | Multiline setup readiness report |
+| `/wf forcestart <arena>` | `cpwaterfight.admin` | Force-start a match |
+| `/wf stop <arena>` | `cpwaterfight.admin` | Stop countdown or match |
 | `/waterfight` | — | Alias root for `/wf` |
 
 Running `/wf` or `/waterfight` without arguments shows help.
+
+### Recommended arena setup flow
+
+1. `/wf create <arena>` — create the arena id  
+2. `/wf setlobby <arena>` — stand in the lobby and set it  
+3. `/wf setjoin <arena>` — look at the join block (within 6 blocks)  
+4. `/wf addspawn <arena>` — add one or more spawn points  
+5. `/wf setmin` / `/wf setmax` — tune capacity (optional; defaults from `config.yml`)  
+6. `/wf rename <arena> <Display Name>` — friendly map name for displays (optional)  
+7. `/wf validate <arena>` — confirm the arena is ready before going live  
+8. `/wf tp <arena>` — quick teleport back to the lobby while building  
 
 ## Level and weapon progression (`levels.yml`)
 

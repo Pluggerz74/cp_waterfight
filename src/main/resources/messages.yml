@@ -27,6 +27,11 @@ help:
     &7  &f/wf list &8— &7List all arenas
     &7  &f/wf forcestart <arena> &8— &7Force-start a match
     &7  &f/wf stop <arena> &8— &7Stop countdown or match
+    &7  &f/wf tp <arena> &8— &7Teleport to arena lobby
+    &7  &f/wf setmin <arena> <amount> &8— &7Set minimum players
+    &7  &f/wf setmax <arena> <amount> &8— &7Set maximum players
+    &7  &f/wf rename <arena> <name> &8— &7Set display name
+    &7  &f/wf validate <arena> &8— &7Check arena setup
   footer: "&8Use /wf help for this list."
 
 arena:
@@ -42,6 +47,19 @@ arena:
   list-empty: "&7No arenas configured."
   list: "&7Arenas (&f%count%&7): &f%ids%"
   no-target-block: "&cLook at a block within 6 blocks to set the join block."
+  teleported: "&aTeleported to lobby of &f%arena% &7(&f%id%&7)."
+  lobby-missing: "&c%arena% has no lobby configured. Use &f/wf setlobby %id%&c."
+  min-set: "&aMinimum players for &f%id% &aset to &f%min%&a."
+  max-set: "&aMaximum players for &f%id% &aset to &f%max%&a."
+  renamed: "&aArena &f%id% &arenamed to &f%display%&a."
+  invalid-number: "&cEnter a whole number of at least &f1&c."
+  min-greater-than-max: "&cMinimum (&f%min%&c) cannot exceed the current maximum."
+  max-less-than-min: "&cMaximum (&f%max%&c) cannot be below the current minimum."
+  validation-header: "&b&lSetup check: &f%display% &7(&f%id%&7)"
+  validation-ready: "&aArena &f%display% &ais ready for Water Fight."
+  validation-not-ready: "&cArena &f%display% &cis not ready yet. Fix the issues above."
+  validation-line-valid: "&a✔ &7%check%"
+  validation-line-invalid: "&c✖ &7%check%"
   info: |
     &b&l%display% &7(&f%id%&7)
     &7State: &f%state%
@@ -56,6 +74,11 @@ arena:
     setjoin: "&7Usage: &f/wf setjoin <arena>"
     addspawn: "&7Usage: &f/wf addspawn <arena>"
     info: "&7Usage: &f/wf info <arena>"
+    tp: "&7Usage: &f/wf tp <arena>"
+    setmin: "&7Usage: &f/wf setmin <arena> <amount>"
+    setmax: "&7Usage: &f/wf setmax <arena> <amount>"
+    rename: "&7Usage: &f/wf rename <arena> <displayName>"
+    validate: "&7Usage: &f/wf validate <arena>"
 
 game:
   countdown-started: "&aWater Fight starts in &f%seconds% &aseconds! &7(&f%players%&7/&f%min_players%&7)"
