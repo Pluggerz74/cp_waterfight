@@ -6,6 +6,7 @@ import de.codingplugs.cpwaterfight.display.JoinDisplayManager;
 import de.codingplugs.cpwaterfight.game.GameManager;
 import de.codingplugs.cpwaterfight.message.MessageManager;
 import de.codingplugs.cpwaterfight.scoreboard.ScoreboardManager;
+import de.codingplugs.cpwaterfight.spectator.SpectatorManager;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -25,6 +26,8 @@ public final class JoinManager {
     private final GameManager gameManager;
     private final ScoreboardManager scoreboardManager;
 
+    private SpectatorManager spectatorManager;
+
     private final Map<UUID, String> playerArenas = new HashMap<>();
 
     public JoinManager(
@@ -39,6 +42,10 @@ public final class JoinManager {
         this.joinDisplayManager = joinDisplayManager;
         this.gameManager = java.util.Objects.requireNonNull(gameManager, "gameManager");
         this.scoreboardManager = scoreboardManager;
+    }
+
+    public void setSpectatorManager(SpectatorManager spectatorManager) {
+        this.spectatorManager = spectatorManager;
     }
 
     public void load() {
@@ -130,6 +137,10 @@ public final class JoinManager {
                 messages.sendPrefixed(player, "join.not-in-arena");
             }
             return false;
+        }
+
+        if (spectatorManager != null && spectatorManager.isSpectating(player)) {
+            spectatorManager.restore(player, false);
         }
 
         arenaManager.getArena(arenaId).ifPresent(arena -> {

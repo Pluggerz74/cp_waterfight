@@ -10,6 +10,7 @@ import de.codingplugs.cpwaterfight.game.GameState;
 import de.codingplugs.cpwaterfight.join.JoinManager;
 import de.codingplugs.cpwaterfight.level.LevelManager;
 import de.codingplugs.cpwaterfight.protection.ProtectionSettings;
+import de.codingplugs.cpwaterfight.spectator.SpectatorManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -34,7 +35,8 @@ public final class ArenaDebugReporter {
             ArenaManager arenaManager,
             LevelManager levelManager,
             ConfigManager configManager,
-            ProtectionSettings protectionSettings
+            ProtectionSettings protectionSettings,
+            SpectatorManager spectatorManager
     ) {
         Map<String, String> lines = new LinkedHashMap<>();
         if (arena == null) {
@@ -59,6 +61,7 @@ public final class ArenaDebugReporter {
         lines.put("Countdown seconds", formatCountdownSeconds(session));
         lines.put("Scoreboard enabled", yesNo(configManager.config().getBoolean("scoreboard.enabled", true)));
         lines.put("Protections", protectionSettings.summary());
+        lines.put("Spectating", String.valueOf(spectatorManager != null ? spectatorManager.getSpectatingCount(arena) : 0));
         lines.put("Max level", String.valueOf(levelManager.getMaxLevel()));
         lines.put("Default kills required", String.valueOf(levelManager.getDefaultKillsRequired()));
         lines.put("Setup ready", yesNo(validation.ready()));

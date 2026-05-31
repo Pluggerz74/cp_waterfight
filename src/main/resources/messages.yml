@@ -114,6 +114,12 @@ level:
   up: "&aLevel up! &f%weapon% &7(Level &f%level%&7/&f%max_level%&7)"
   up-broadcast: "&e%player% &7reached level &f%level% &7with &f%weapon%&7!"
 
+spectator:
+  start: "&7Respawning in &f%seconds% &7seconds..."
+  end: "&aYou're back in the fight!"
+  title: "&cEliminated"
+  subtitle: "&7Respawning in &f%seconds%&7... &8(%killer%)"
+
 kill:
   progress: "&7Kill! &f%kills%&7/&f%kills_required% &7on level &f%level% &7(&f%weapon%&7) — &f%total_kills% &7total"
 

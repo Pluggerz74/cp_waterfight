@@ -9,6 +9,7 @@ import de.codingplugs.cpwaterfight.scoreboard.ScoreboardManager;
 import de.codingplugs.cpwaterfight.level.LevelDefinition;
 import de.codingplugs.cpwaterfight.level.LevelManager;
 import de.codingplugs.cpwaterfight.message.MessageManager;
+import de.codingplugs.cpwaterfight.spectator.SpectatorManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -48,6 +49,7 @@ public final class GameManager {
     private ArenaPlayerCountProvider playerCountProvider = arena -> 0;
     private JoinManager joinManager;
     private ScoreboardManager scoreboardManager;
+    private SpectatorManager spectatorManager;
 
     private final Map<String, GameSession> sessions = new HashMap<>();
 
@@ -77,6 +79,10 @@ public final class GameManager {
 
     public void setScoreboardManager(ScoreboardManager scoreboardManager) {
         this.scoreboardManager = scoreboardManager;
+    }
+
+    public void setSpectatorManager(SpectatorManager spectatorManager) {
+        this.spectatorManager = spectatorManager;
     }
 
     public void load() {
@@ -780,6 +786,10 @@ public final class GameManager {
     private void finishMatch(Arena arena) {
         if (arena == null) {
             return;
+        }
+
+        if (spectatorManager != null) {
+            spectatorManager.restoreArena(arena);
         }
 
         GameSession session = getOrCreateSession(arena);

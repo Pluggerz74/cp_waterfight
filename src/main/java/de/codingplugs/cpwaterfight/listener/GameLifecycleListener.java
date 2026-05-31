@@ -3,6 +3,7 @@ package de.codingplugs.cpwaterfight.listener;
 import de.codingplugs.cpwaterfight.arena.Arena;
 import de.codingplugs.cpwaterfight.game.GameManager;
 import de.codingplugs.cpwaterfight.game.GameState;
+import de.codingplugs.cpwaterfight.spectator.SpectatorManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,14 +18,20 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 public final class GameLifecycleListener implements Listener {
 
     private final GameManager gameManager;
+    private final SpectatorManager spectatorManager;
 
-    public GameLifecycleListener(GameManager gameManager) {
+    public GameLifecycleListener(GameManager gameManager, SpectatorManager spectatorManager) {
         this.gameManager = gameManager;
+        this.spectatorManager = spectatorManager;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        gameManager.handleQuit(event.getPlayer());
+        Player player = event.getPlayer();
+        if (spectatorManager.isSpectating(player)) {
+            spectatorManager.restore(player, false);
+        }
+        gameManager.handleQuit(player);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -59,10 +66,15 @@ public final class GameLifecycleListener implements Listener {
             return;
         }
 
-        gameManager.getArena(player).ifPresent(arena ->
-                gameManager.getRandomSpawn(arena).ifPresent(event::setRespawnLocation)
-        );
+        gameManager.getArena(player).ifPresent(arena -> {
+            gameManager.getRandomSpawn(arena).ifPresent(event::setRespawnLocation);
 
-        gameManager.handleRespawn(player);
+            if (spectatorManager.isEnabled() && gameManager.isInGame(player)) {
+                spectatorManager.handleDeath(player, player.getKiller(), arena);
+                return;
+            }
+
+            gameManager.handleRespawn(player);
+        });
     }
 }

@@ -36,6 +36,8 @@ import de.codingplugs.cpwaterfight.listener.JoinBlockListener;
 import de.codingplugs.cpwaterfight.message.MessageManager;
 import de.codingplugs.cpwaterfight.protection.ProtectionSettings;
 import de.codingplugs.cpwaterfight.scoreboard.ScoreboardManager;
+import de.codingplugs.cpwaterfight.spectator.SpectatorManager;
+import de.codingplugs.cpwaterfight.spectator.SpectatorSettings;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -59,6 +61,8 @@ public final class CPWaterFight extends JavaPlugin {
     private LevelManager levelManager;
     private ScoreboardManager scoreboardManager;
     private ProtectionSettings protectionSettings;
+    private SpectatorSettings spectatorSettings;
+    private SpectatorManager spectatorManager;
 
     private boolean enabled;
 
@@ -88,6 +92,10 @@ public final class CPWaterFight extends JavaPlugin {
      * Reloads all configuration and manager state.
      */
     public void reload() {
+        if (spectatorManager != null) {
+            spectatorManager.restoreAll();
+        }
+
         joinManager.clear();
         joinDisplayManager.removeAll();
         if (scoreboardManager != null) {
@@ -146,6 +154,7 @@ public final class CPWaterFight extends JavaPlugin {
 
             scoreboardManager = new ScoreboardManager(this, configManager, gameManager, levelManager);
             protectionSettings = new ProtectionSettings(configManager);
+            spectatorSettings = new SpectatorSettings(configManager);
 
             joinDisplayManager.attachGameManager(gameManager);
 
@@ -159,6 +168,17 @@ public final class CPWaterFight extends JavaPlugin {
             gameManager.setPlayerCountProvider(joinManager::getPlayerCount);
             gameManager.setJoinManager(joinManager);
             gameManager.setScoreboardManager(scoreboardManager);
+
+            spectatorManager = new SpectatorManager(
+                    this,
+                    spectatorSettings,
+                    gameManager,
+                    joinManager,
+                    messageManager
+            );
+            joinManager.setSpectatorManager(spectatorManager);
+            gameManager.setSpectatorManager(spectatorManager);
+
             scoreboardManager.setJoinManager(joinManager);
             joinManager.load();
             joinDisplayManager.load();
@@ -202,7 +222,8 @@ public final class CPWaterFight extends JavaPlugin {
                         gameManager,
                         levelManager,
                         configManager,
-                        protectionSettings
+                        protectionSettings,
+                        spectatorManager
                 )
         );
 
@@ -222,7 +243,7 @@ public final class CPWaterFight extends JavaPlugin {
                 new JoinBlockListener(arenaManager, joinManager, messageManager),
                 this
         );
-        pluginManager.registerEvents(new GameLifecycleListener(gameManager), this);
+        pluginManager.registerEvents(new GameLifecycleListener(gameManager, spectatorManager), this);
         pluginManager.registerEvents(
                 new GameProtectionListener(joinManager, gameManager, messageManager, protectionSettings),
                 this
@@ -238,6 +259,9 @@ public final class CPWaterFight extends JavaPlugin {
         }
         if (joinManager != null) {
             joinManager.shutdown();
+        }
+        if (spectatorManager != null) {
+            spectatorManager.shutdown();
         }
         if (gameManager != null) {
             gameManager.shutdown();

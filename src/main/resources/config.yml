@@ -21,6 +21,15 @@ game:
   hide-death-messages: true
   broadcast-level-up: true
 
+# Brief spectator phase after in-game deaths before respawn and re-equip
+spectator:
+  enabled: true
+  duration-ticks: 40
+  gamemode: "SPECTATOR"
+  hide-from-players: false
+  teleport-to-killer: false
+  send-title: true
+
 # Arena protections while players are joined
 protection:
   message-cooldown-millis: 1500

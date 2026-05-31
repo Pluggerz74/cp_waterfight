@@ -10,6 +10,7 @@ import de.codingplugs.cpwaterfight.join.JoinManager;
 import de.codingplugs.cpwaterfight.level.LevelManager;
 import de.codingplugs.cpwaterfight.message.MessageManager;
 import de.codingplugs.cpwaterfight.protection.ProtectionSettings;
+import de.codingplugs.cpwaterfight.spectator.SpectatorManager;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public final class DebugArenaSubCommand extends AdminSubCommand {
     private final LevelManager levelManager;
     private final ConfigManager configManager;
     private final ProtectionSettings protectionSettings;
+    private final SpectatorManager spectatorManager;
 
     public DebugArenaSubCommand(
             MessageManager messages,
@@ -31,7 +33,8 @@ public final class DebugArenaSubCommand extends AdminSubCommand {
             GameManager gameManager,
             LevelManager levelManager,
             ConfigManager configManager,
-            ProtectionSettings protectionSettings
+            ProtectionSettings protectionSettings,
+            SpectatorManager spectatorManager
     ) {
         super(messages);
         this.arenaManager = arenaManager;
@@ -40,6 +43,7 @@ public final class DebugArenaSubCommand extends AdminSubCommand {
         this.levelManager = levelManager;
         this.configManager = configManager;
         this.protectionSettings = protectionSettings;
+        this.spectatorManager = spectatorManager;
     }
 
     @Override
@@ -72,7 +76,8 @@ public final class DebugArenaSubCommand extends AdminSubCommand {
                 arenaManager,
                 levelManager,
                 configManager,
-                protectionSettings
+                protectionSettings,
+                spectatorManager
         );
 
         for (Map.Entry<String, String> entry : ArenaDebugReporter.asOrderedLines(report)) {
