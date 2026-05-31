@@ -3,6 +3,7 @@ package de.codingplugs.cpwaterfight.join;
 import de.codingplugs.cpwaterfight.arena.Arena;
 import de.codingplugs.cpwaterfight.arena.ArenaManager;
 import de.codingplugs.cpwaterfight.display.JoinDisplayManager;
+import de.codingplugs.cpwaterfight.game.GameManager;
 import de.codingplugs.cpwaterfight.message.MessageManager;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -20,17 +21,20 @@ public final class JoinManager {
     private final MessageManager messages;
     private final ArenaManager arenaManager;
     private final JoinDisplayManager joinDisplayManager;
+    private final GameManager gameManager;
 
     private final Map<UUID, String> playerArenas = new HashMap<>();
 
     public JoinManager(
             MessageManager messages,
             ArenaManager arenaManager,
-            JoinDisplayManager joinDisplayManager
+            JoinDisplayManager joinDisplayManager,
+            GameManager gameManager
     ) {
         this.messages = messages;
         this.arenaManager = arenaManager;
         this.joinDisplayManager = joinDisplayManager;
+        this.gameManager = gameManager;
     }
 
     public void load() {
@@ -53,7 +57,9 @@ public final class JoinManager {
         if (arenaId == null) {
             return;
         }
+
         playerArenas.entrySet().removeIf(entry -> arenaId.equals(entry.getValue()));
+        gameManager.removeSession(arenaId);
     }
 
     public boolean join(Player player, Arena arena) {
@@ -70,6 +76,10 @@ public final class JoinManager {
                 messages.sendPrefixed(player, "join.already-in-arena", Map.of("arena", arena.displayName()));
                 return false;
             }
+
+            arenaManager.getArena(currentArenaId.get()).ifPresent(previousArena ->
+                    gameManager.handlePlayerLeave(player, previousArena)
+            );
             leave(player, false);
         }
 
@@ -87,9 +97,10 @@ public final class JoinManager {
         }
 
         playerArenas.put(playerId, arenaId);
+        gameManager.handlePlayerJoin(player, arena);
         teleportToLobby(player, arena);
         messages.sendPrefixed(player, "join.joined-arena", Map.of("arena", arena.displayName()));
-        joinDisplayManager.updateArena(arena, getPlayerCount(arena));
+        refreshDisplay(arena);
         return true;
     }
 
@@ -111,10 +122,11 @@ public final class JoinManager {
         }
 
         arenaManager.getArena(arenaId).ifPresent(arena -> {
+            gameManager.handlePlayerLeave(player, arena);
             if (notify) {
                 messages.sendPrefixed(player, "join.left-arena", Map.of("arena", arena.displayName()));
             }
-            joinDisplayManager.updateArena(arena, getPlayerCount(arena));
+            refreshDisplay(arena);
         });
         return true;
     }
@@ -147,6 +159,10 @@ public final class JoinManager {
 
     public boolean isInArena(Player player) {
         return player != null && playerArenas.containsKey(player.getUniqueId());
+    }
+
+    private void refreshDisplay(Arena arena) {
+        joinDisplayManager.updateArena(arena, getPlayerCount(arena));
     }
 
     private void teleportToLobby(Player player, Arena arena) {

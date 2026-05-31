@@ -17,6 +17,7 @@ import de.codingplugs.cpwaterfight.command.join.LeaveSubCommand;
 import de.codingplugs.cpwaterfight.config.ConfigManager;
 import de.codingplugs.cpwaterfight.display.JoinDisplayManager;
 import de.codingplugs.cpwaterfight.game.GameManager;
+import de.codingplugs.cpwaterfight.game.GameStateLabels;
 import de.codingplugs.cpwaterfight.join.JoinManager;
 import de.codingplugs.cpwaterfight.level.LevelManager;
 import de.codingplugs.cpwaterfight.listener.JoinBlockListener;
@@ -38,6 +39,7 @@ public final class CPWaterFight extends JavaPlugin {
     private MessageManager messageManager;
     private ArenaManager arenaManager;
     private GameManager gameManager;
+    private GameStateLabels gameStateLabels;
     private JoinManager joinManager;
     private JoinDisplayManager joinDisplayManager;
     private LevelManager levelManager;
@@ -78,6 +80,7 @@ public final class CPWaterFight extends JavaPlugin {
         arenaManager.reload();
         levelManager.reload();
         gameManager.reload();
+        gameStateLabels.reload();
 
         joinDisplayManager.refreshAll(joinManager::getPlayerCount);
     }
@@ -98,8 +101,17 @@ public final class CPWaterFight extends JavaPlugin {
             gameManager = new GameManager();
             gameManager.load();
 
-            joinDisplayManager = new JoinDisplayManager(configManager, messageManager, arenaManager);
-            joinManager = new JoinManager(messageManager, arenaManager, joinDisplayManager);
+            gameStateLabels = new GameStateLabels(configManager);
+            gameStateLabels.load();
+
+            joinDisplayManager = new JoinDisplayManager(
+                    configManager,
+                    messageManager,
+                    arenaManager,
+                    gameManager,
+                    gameStateLabels
+            );
+            joinManager = new JoinManager(messageManager, arenaManager, joinDisplayManager, gameManager);
             joinManager.load();
             joinDisplayManager.load();
 

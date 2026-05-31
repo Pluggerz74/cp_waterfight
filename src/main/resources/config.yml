@@ -17,6 +17,13 @@ broadcast-events: true
 # Debug logging (disable in production)
 debug: false
 
+# User-facing labels for arena game states (join display %state%)
+state-labels:
+  WAITING: "Wartet"
+  COUNTDOWN: "Startet"
+  INGAME: "Im Spiel"
+  ENDING: "Beendet"
+
 # TextDisplay above join blocks
 join-display:
   enabled: true
@@ -25,3 +32,4 @@ join-display:
     - "&b&lWater Fight"
     - "&7Spieler: &a%players% &7/ &a%max_players%"
     - "&7Map: &e%map%"
+    - "&7Status: &f%state%"

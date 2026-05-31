@@ -4,6 +4,8 @@ import de.codingplugs.cpwaterfight.CPWaterFight;
 import de.codingplugs.cpwaterfight.arena.Arena;
 import de.codingplugs.cpwaterfight.arena.ArenaManager;
 import de.codingplugs.cpwaterfight.config.ConfigManager;
+import de.codingplugs.cpwaterfight.game.GameManager;
+import de.codingplugs.cpwaterfight.game.GameStateLabels;
 import de.codingplugs.cpwaterfight.message.MessageManager;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -12,10 +14,12 @@ import org.bukkit.World;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.TextDisplay;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 /**
  * Spawns and maintains TextDisplay entities above arena join blocks.
  */
@@ -26,17 +30,23 @@ public final class JoinDisplayManager {
     private final ConfigManager configManager;
     private final MessageManager messageManager;
     private final ArenaManager arenaManager;
+    private final GameManager gameManager;
+    private final GameStateLabels stateLabels;
 
     private final Map<String, UUID> displayIds = new HashMap<>();
 
     public JoinDisplayManager(
             ConfigManager configManager,
             MessageManager messageManager,
-            ArenaManager arenaManager
+            ArenaManager arenaManager,
+            GameManager gameManager,
+            GameStateLabels stateLabels
     ) {
         this.configManager = configManager;
         this.messageManager = messageManager;
         this.arenaManager = arenaManager;
+        this.gameManager = gameManager;
+        this.stateLabels = stateLabels;
     }
 
     public void load() {
@@ -163,7 +173,8 @@ public final class JoinDisplayManager {
             lines = List.of(
                     "&b&l" + CPWaterFight.GAME_MODE_NAME,
                     "&7Spieler: &a%players% &7/ &a%max_players%",
-                    "&7Map: &e%map%"
+                    "&7Map: &e%map%",
+                    "&7Status: &f%state%"
             );
         }
 
@@ -183,7 +194,8 @@ public final class JoinDisplayManager {
                 .replace("%players%", String.valueOf(playerCount))
                 .replace("%max_players%", String.valueOf(arena.maxPlayers()))
                 .replace("%map%", arena.displayName())
-                .replace("%game%", CPWaterFight.GAME_MODE_NAME);
+                .replace("%game%", CPWaterFight.GAME_MODE_NAME)
+                .replace("%state%", stateLabels.label(gameManager.getArenaState(arena)));
     }
 
     private boolean isEnabled() {
