@@ -17,8 +17,29 @@ game:
   ending-seconds: 5
   prevent-fall-damage-before-start: true
   clear-inventory-on-stop: true
+  clear-inventory-on-leave: true
   hide-death-messages: true
   broadcast-level-up: true
+
+# Arena protections while players are joined
+protection:
+  block-item-drop: true
+  block-item-pickup: true
+  block-inventory-click: true
+  block-offhand-swap: true
+  block-break: true
+  block-place: true
+  lock-food-level: true
+  prevent-fire-damage-before-start: true
+  prevent-drowning-before-start: true
+  prevent-item-durability-loss: true
+  restrict-commands-ingame: true
+  allowed-commands-ingame:
+    - "wf"
+    - "waterfight"
+    - "msg"
+    - "tell"
+    - "r"
 
 # Whether to broadcast match events to the server
 broadcast-events: true

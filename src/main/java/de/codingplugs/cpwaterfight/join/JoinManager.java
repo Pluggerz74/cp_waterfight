@@ -138,6 +138,9 @@ public final class JoinManager {
             if (scoreboardManager != null) {
                 scoreboardManager.remove(player);
             }
+            if (gameManager.shouldClearInventoryOnLeave()) {
+                gameManager.clearPlayerInventory(player);
+            }
             if (notify) {
                 messages.sendPrefixed(player, "join.left-arena", Map.of("arena", arena.displayName()));
             }

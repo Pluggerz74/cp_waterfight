@@ -34,6 +34,7 @@ public final class GameManager {
     private static final String COUNTDOWN_SECONDS_PATH = "game.countdown-seconds";
     private static final String PREVENT_FALL_DAMAGE_PATH = "game.prevent-fall-damage-before-start";
     private static final String CLEAR_INVENTORY_ON_STOP_PATH = "game.clear-inventory-on-stop";
+    private static final String CLEAR_INVENTORY_ON_LEAVE_PATH = "game.clear-inventory-on-leave";
     private static final String ENDING_SECONDS_PATH = "game.ending-seconds";
     private static final String HIDE_DEATH_MESSAGES_PATH = "game.hide-death-messages";
     private static final String BROADCAST_LEVEL_UP_PATH = "game.broadcast-level-up";
@@ -313,8 +314,21 @@ public final class GameManager {
         }
 
         getArena(player).ifPresent(arena ->
-                Bukkit.getScheduler().runTaskLater(plugin, () -> equipPlayer(player, arena), 1L)
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    PlayerMatchState.prepareAfterRespawn(player);
+                    equipPlayer(player, arena);
+                }, 1L)
         );
+    }
+
+    public boolean shouldClearInventoryOnLeave() {
+        return configManager.config().getBoolean(CLEAR_INVENTORY_ON_LEAVE_PATH, true);
+    }
+
+    public void clearPlayerInventory(Player player) {
+        if (player != null) {
+            player.getInventory().clear();
+        }
     }
 
     public Optional<PlayerProgress> getProgress(Player player) {

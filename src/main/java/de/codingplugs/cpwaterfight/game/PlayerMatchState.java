@@ -27,4 +27,15 @@ public final class PlayerMatchState {
         double maxHealth = player.getMaxHealth();
         player.setHealth(maxHealth);
     }
+
+    public static void prepareAfterRespawn(Player player) {
+        if (player == null) {
+            return;
+        }
+
+        player.setFireTicks(0);
+        player.setFallDistance(0.0F);
+        player.setFoodLevel(20);
+        player.setSaturation(20.0F);
+    }
 }

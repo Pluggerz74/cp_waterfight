@@ -84,6 +84,10 @@ level:
 kill:
   progress: "&7Kill! &f%kills%&7/&f%kills_required% &7on level &f%level% &7(&f%weapon%&7) — &f%total_kills% &7total"
 
+protection:
+  action-blocked: "&cThat action is not allowed during Water Fight."
+  command-blocked: "&cThat command is not allowed during a match."
+
 join:
   joined-arena: "&aYou joined &f%arena%&a."
   left-arena: "&7You left &f%arena%&7."
