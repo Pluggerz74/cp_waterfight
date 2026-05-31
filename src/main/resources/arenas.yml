@@ -1,14 +1,30 @@
 # cp_waterfight — arena definitions
-# Arenas will be configured in a later development step.
 #
-# Example structure (not active until arena setup is implemented):
-#
+# Example:
 # arenas:
-#   example:
-#     display-name: "Example Arena"
-#     world: world
-#     enabled: true
-#     spawn: {}
-#     bounds: {}
+#   arena1:
+#     display-name: "Arena 1"
+#     min-players: 2
+#     max-players: 50
+#     state: WAITING
+#     lobby:
+#       world: "world"
+#       x: 0.5
+#       y: 70.0
+#       z: 0.5
+#       yaw: 0.0
+#       pitch: 0.0
+#     join-block:
+#       world: "world"
+#       x: 10
+#       y: 65
+#       z: 10
+#     spawns:
+#       - world: "world"
+#         x: 5.5
+#         y: 70.0
+#         z: 5.5
+#         yaw: 90.0
+#         pitch: 0.0
 
 arenas: {}

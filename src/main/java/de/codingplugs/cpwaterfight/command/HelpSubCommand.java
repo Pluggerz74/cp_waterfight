@@ -7,8 +7,6 @@ import java.util.List;
 
 public final class HelpSubCommand implements SubCommand {
 
-    private static final String PERMISSION = "cpwaterfight.use";
-
     private final MessageManager messages;
 
     public HelpSubCommand(MessageManager messages) {
@@ -22,13 +20,19 @@ public final class HelpSubCommand implements SubCommand {
 
     @Override
     public String permission() {
-        return PERMISSION;
+        return CommandPermissions.USE;
     }
 
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         sender.sendMessage(messages.component("help.header"));
-        sender.sendMessage(messages.component("help.reload-line"));
+
+        if (sender.hasPermission(CommandPermissions.ADMIN)) {
+            messages.sendLines(sender, "help.admin", java.util.Map.of());
+        } else if (sender.hasPermission(CommandPermissions.USE)) {
+            sender.sendMessage(messages.component("help.reload-line"));
+        }
+
         sender.sendMessage(messages.component("help.footer"));
         return true;
     }

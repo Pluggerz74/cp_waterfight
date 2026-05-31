@@ -61,6 +61,13 @@ On first run, the plugin creates these files in `plugins/cp_waterfight/`:
 |---------|------------|-------------|
 | `/wf help` | `cpwaterfight.use` | Show available commands |
 | `/wf reload` | `cpwaterfight.admin` | Reload all configuration files |
+| `/wf create <arena>` | `cpwaterfight.admin` | Create a new arena |
+| `/wf delete <arena>` | `cpwaterfight.admin` | Delete an arena |
+| `/wf setlobby <arena>` | `cpwaterfight.admin` | Set lobby to your location (player) |
+| `/wf setjoin <arena>` | `cpwaterfight.admin` | Set join block to targeted block (player, 6 blocks) |
+| `/wf addspawn <arena>` | `cpwaterfight.admin` | Add spawn at your location (player) |
+| `/wf info <arena>` | `cpwaterfight.admin` | Show arena details |
+| `/wf list` | `cpwaterfight.admin` | List all arena ids |
 | `/waterfight` | — | Alias root for `/wf` |
 
 Running `/wf` or `/waterfight` without arguments shows help.

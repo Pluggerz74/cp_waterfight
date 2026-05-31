@@ -10,4 +10,42 @@ general:
 help:
   header: "&b&lWater Fight &r&7— Commands"
   reload-line: "&7  &f/wf reload &8— &7Reload plugin configuration"
+  admin: |
+    &7  &f/wf help &8— &7Show this help page
+    &7  &f/wf reload &8— &7Reload plugin configuration
+    &7  &f/wf create <arena> &8— &7Create a new arena
+    &7  &f/wf delete <arena> &8— &7Delete an arena
+    &7  &f/wf setlobby <arena> &8— &7Set arena lobby to your location
+    &7  &f/wf setjoin <arena> &8— &7Set join block to targeted block
+    &7  &f/wf addspawn <arena> &8— &7Add a spawn point to your location
+    &7  &f/wf info <arena> &8— &7Show arena details
+    &7  &f/wf list &8— &7List all arenas
   footer: "&8Use /wf help for this list."
+
+arena:
+  created: "&aArena &f%id% &acreated."
+  already-exists: "&cArena &f%id% &calready exists."
+  create-failed: "&cCould not create arena."
+  invalid-id: "&cInvalid arena id. Use letters, numbers, underscores, and hyphens."
+  deleted: "&aArena &f%id% &adeleted."
+  not-found: "&cArena &f%id% &cwas not found."
+  lobby-set: "&aLobby set for arena &f%id%&a."
+  join-set: "&aJoin block set for arena &f%id%&a."
+  spawn-added: "&aSpawn added to arena &f%id%&a. &7(&f%count%&7 total)"
+  list-empty: "&7No arenas configured."
+  list: "&7Arenas (&f%count%&7): &f%ids%"
+  no-target-block: "&cLook at a block within 6 blocks to set the join block."
+  info: |
+    &b&l%display% &7(&f%id%&7)
+    &7State: &f%state%
+    &7Players: &f%min%&7-&f%max%
+    &7Lobby: %lobby%
+    &7Join block: %join%
+    &7Spawns: &f%spawns%
+  usage:
+    create: "&7Usage: &f/wf create <arena>"
+    delete: "&7Usage: &f/wf delete <arena>"
+    setlobby: "&7Usage: &f/wf setlobby <arena>"
+    setjoin: "&7Usage: &f/wf setjoin <arena>"
+    addspawn: "&7Usage: &f/wf addspawn <arena>"
+    info: "&7Usage: &f/wf info <arena>"

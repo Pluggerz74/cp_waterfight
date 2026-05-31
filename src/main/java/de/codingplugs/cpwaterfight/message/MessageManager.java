@@ -78,4 +78,15 @@ public final class MessageManager {
     public void sendPrefixed(CommandSender sender, String path, Map<String, String> placeholders) {
         sender.sendMessage(LEGACY.deserialize(prefix + format(path, placeholders)));
     }
+
+    public void sendLines(CommandSender sender, String path, Map<String, String> placeholders) {
+        String content = format(path, placeholders);
+        if (content.isEmpty()) {
+            return;
+        }
+
+        for (String line : content.split("\n")) {
+            sender.sendMessage(LEGACY.deserialize(line));
+        }
+    }
 }

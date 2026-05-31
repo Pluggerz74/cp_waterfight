@@ -8,8 +8,6 @@ import java.util.List;
 
 public final class ReloadSubCommand implements SubCommand {
 
-    private static final String PERMISSION = "cpwaterfight.admin";
-
     private final CPWaterFight plugin;
     private final MessageManager messages;
 
@@ -25,7 +23,7 @@ public final class ReloadSubCommand implements SubCommand {
 
     @Override
     public String permission() {
-        return PERMISSION;
+        return CommandPermissions.ADMIN;
     }
 
     @Override
