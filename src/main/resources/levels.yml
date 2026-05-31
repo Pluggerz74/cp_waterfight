@@ -1,11 +1,283 @@
-# cp_waterfight — level progression (GunGame-style weapons per level)
-# Levels will be fully configured in a later development step.
-#
-# Example structure:
-#
-# levels:
-#   1:
-#     weapon: DIAMOND_SWORD
-#     kills-required: 1
+# cp_waterfight — GunGame-style level and weapon progression
+# Water Fight is the game mode name only; weapons are normal combat gear.
 
-levels: {}
+settings:
+  max-level: 20
+  default-kills-required: 2
+
+levels:
+  1:
+    kills-required: 2
+    weapon:
+      material: WOODEN_SWORD
+      name: "&7Holzschwert"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments: {}
+      extra-items: {}
+
+  2:
+    kills-required: 2
+    weapon:
+      material: STONE_SWORD
+      name: "&8Steinschwert"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments: {}
+      extra-items: {}
+
+  3:
+    kills-required: 2
+    weapon:
+      material: IRON_SWORD
+      name: "&fEisenschwert"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments: {}
+      extra-items: {}
+
+  4:
+    kills-required: 2
+    weapon:
+      material: BOW
+      name: "&aBogen"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments: {}
+      extra-items:
+        ARROW: 16
+
+  5:
+    kills-required: 2
+    weapon:
+      material: STONE_AXE
+      name: "&8Steinaxt"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments: {}
+      extra-items: {}
+
+  6:
+    kills-required: 2
+    weapon:
+      material: CROSSBOW
+      name: "&7Armbrust"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments: {}
+      extra-items:
+        ARROW: 16
+
+  7:
+    kills-required: 2
+    weapon:
+      material: IRON_AXE
+      name: "&fEisenaxt"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments: {}
+      extra-items: {}
+
+  8:
+    kills-required: 2
+    weapon:
+      material: BOW
+      name: "&aBogen &7(Power I)"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments:
+        power: 1
+      extra-items:
+        ARROW: 24
+
+  9:
+    kills-required: 2
+    weapon:
+      material: DIAMOND_SWORD
+      name: "&bDiamantschwert"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments: {}
+      extra-items: {}
+
+  10:
+    kills-required: 2
+    weapon:
+      material: TRIDENT
+      name: "&3Dreizack"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments:
+        loyalty: 1
+      extra-items: {}
+
+  11:
+    kills-required: 2
+    weapon:
+      material: DIAMOND_AXE
+      name: "&bDiamantaxt"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments: {}
+      extra-items: {}
+
+  12:
+    kills-required: 2
+    weapon:
+      material: CROSSBOW
+      name: "&7Armbrust &7(Schnellladen I)"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments:
+        quick_charge: 1
+      extra-items:
+        ARROW: 24
+
+  13:
+    kills-required: 2
+    weapon:
+      material: BOW
+      name: "&aBogen &7(Power II)"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments:
+        power: 2
+      extra-items:
+        ARROW: 32
+
+  14:
+    kills-required: 2
+    weapon:
+      material: NETHERITE_SWORD
+      name: "&8Netherit-Schwert"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments: {}
+      extra-items: {}
+
+  15:
+    kills-required: 2
+    weapon:
+      material: MACE
+      name: "&6Streitkolben"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments: {}
+      extra-items: {}
+
+  16:
+    kills-required: 2
+    weapon:
+      material: IRON_SWORD
+      name: "&fEisenschwert &7(Sharpness I)"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments:
+        sharpness: 1
+      extra-items: {}
+
+  17:
+    kills-required: 2
+    weapon:
+      material: CROSSBOW
+      name: "&7Armbrust &7(Durchdringung I)"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments:
+        piercing: 1
+      extra-items:
+        ARROW: 32
+
+  18:
+    kills-required: 2
+    weapon:
+      material: DIAMOND_SWORD
+      name: "&bDiamantschwert &7(Sharpness II)"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments:
+        sharpness: 2
+      extra-items: {}
+
+  19:
+    kills-required: 2
+    weapon:
+      material: BOW
+      name: "&aBogen &7(Power III)"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Kills bis nächste Waffe: &f%kills_required%"
+      enchantments:
+        power: 3
+      extra-items:
+        ARROW: 48
+
+  20:
+    kills-required: 2
+    weapon:
+      material: NETHERITE_AXE
+      name: "&4&lFinale Axt"
+      amount: 1
+      unbreakable: true
+      lore:
+        - "&7Level &f%level%"
+        - "&7Letzte Waffe — &f%kills_required% &7Kills zum Sieg"
+      enchantments:
+        sharpness: 2
+      extra-items: {}

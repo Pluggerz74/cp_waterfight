@@ -123,7 +123,7 @@ public final class CPWaterFight extends JavaPlugin {
             joinManager.load();
             joinDisplayManager.load();
 
-            levelManager = new LevelManager(configManager);
+            levelManager = new LevelManager(configManager, getLogger());
             levelManager.load();
 
             registerCommands();

@@ -52,7 +52,7 @@ On first run, the plugin creates these files in `plugins/cp_waterfight/`:
 |------|---------|
 | `config.yml` | General plugin settings |
 | `arenas.yml` | Arena definitions (future) |
-| `levels.yml` | Level and weapon progression (future) |
+| `levels.yml` | GunGame level and weapon progression (20 levels) |
 | `messages.yml` | Player-facing messages (MiniMessage format) |
 
 ## Commands
@@ -74,6 +74,21 @@ On first run, the plugin creates these files in `plugins/cp_waterfight/`:
 
 Running `/wf` or `/waterfight` without arguments shows help.
 
+## Level and weapon progression (`levels.yml`)
+
+Water Fight uses a GunGame-style progression: **20 levels**, **2 kills per level** (40 kills total to win when gameplay is complete). The game mode name is *Water Fight* only — weapons are normal, fair combat gear (not water-themed).
+
+`levels.yml` structure:
+
+- `settings.max-level` — highest level (default `20`)
+- `settings.default-kills-required` — kills to advance when a level omits its own value (default `2`)
+- `levels.<n>.kills-required` — kills needed to reach the next level
+- `levels.<n>.weapon` — primary item: `material`, `name`, `amount`, `unbreakable`, `lore`, `enchantments`, `extra-items`
+
+Lore and names support legacy `&` colors and placeholders: `%level%`, `%kills_required%`, `%weapon%`.
+
+`LevelManager` loads definitions and can build `ItemStack` kits from config (giving weapons in-game comes in a later step). Invalid materials or enchantments are logged and skipped safely.
+
 ## Permissions
 
 | Permission | Default | Description |
@@ -94,7 +109,11 @@ cp_waterfight/
 │   └── maven-wrapper.properties
 └── src/main/
     ├── java/de/codingplugs/cpwaterfight/
-    │   └── CPWaterFight.java
+    │   ├── CPWaterFight.java
+    │   ├── level/          # LevelDefinition, WeaponDefinition, LevelManager
+    │   ├── game/
+    │   ├── arena/
+    │   └── ...
     └── resources/
         ├── plugin.yml
         ├── config.yml
